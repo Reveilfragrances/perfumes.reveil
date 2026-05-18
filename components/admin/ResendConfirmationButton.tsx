@@ -34,8 +34,8 @@ export default function ResendConfirmationButton({ orderId }: { orderId: string 
             onClick={handleResend}
             disabled={status === 'loading'}
             className={cn(
-                "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all duration-300 border",
-                status === 'idle' && "text-gray-600 border-gray-200 hover:text-[#a8851e] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/40",
+                "inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider transition-all duration-300 border",
+                status === 'idle' && "text-gray-700 border-gray-200 hover:text-[#8a6d18] hover:bg-[#d4af37]/10 hover:border-[#d4af37]/40",
                 status === 'loading' && "text-blue-600 bg-blue-50 border-blue-100",
                 status === 'success' && "text-emerald-600 bg-emerald-50 border-emerald-100",
                 status === 'error' && "text-red-600 bg-red-50 border-red-200"

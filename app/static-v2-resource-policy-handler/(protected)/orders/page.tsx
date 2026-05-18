@@ -55,14 +55,14 @@ export default async function AdminOrdersPage() {
                 <table className="w-full text-left table-fixed">
                     <thead>
                         <tr className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 border-b border-gray-100 bg-gradient-to-b from-gray-50/80 to-white">
-                            <th className="px-6 py-5 w-[13%]">Order</th>
-                            <th className="px-6 py-5 w-[16%]">Customer</th>
-                            <th className="px-6 py-5 w-[20%]">Items</th>
-                            <th className="px-6 py-5 w-[11%]">Amount</th>
-                            <th className="px-6 py-5 w-[10%]">Payment</th>
-                            <th className="px-6 py-5 w-[10%]">Status</th>
-                            <th className="px-6 py-5 w-[10%]">Shipping</th>
-                            <th className="px-6 py-5 w-[10%] text-right">Actions</th>
+                            <th className="px-6 py-5 w-[11%]">Order</th>
+                            <th className="px-6 py-5 w-[14%]">Customer</th>
+                            <th className="px-6 py-5 w-[18%]">Items</th>
+                            <th className="px-6 py-5 w-[9%]">Amount</th>
+                            <th className="px-6 py-5 w-[9%]">Payment</th>
+                            <th className="px-6 py-5 w-[12%]">Status</th>
+                            <th className="px-6 py-5 w-[13%]">Shipping</th>
+                            <th className="px-6 py-5 w-[14%] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -164,12 +164,12 @@ export default async function AdminOrdersPage() {
                                         </div>
                                     </td>
 
-                                    {/* Actions */}
+                                    {/* Actions — stacked vertically so they never overlap the status pill */}
                                     <td className="px-6 py-6">
-                                        <div className="flex items-center justify-end gap-1.5">
+                                        <div className="flex flex-col items-stretch gap-1.5 min-w-[110px] ml-auto">
                                             <Link
                                                 href={`/static-v2-resource-policy-handler/orders/${order.id}`}
-                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-gray-600 hover:text-white hover:bg-black border border-gray-200 hover:border-black transition-all"
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider text-gray-700 hover:text-white hover:bg-black border border-gray-200 hover:border-black transition-all"
                                                 title="View order details"
                                             >
                                                 <ExternalLink className="w-3 h-3" /> View

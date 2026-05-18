@@ -46,17 +46,17 @@ export default function FulfillButton({ orderId, isFulfilled }: FulfillButtonPro
     }
 
     return (
-        <div className="relative inline-flex">
+        <div className="relative w-full">
             <button
                 onClick={handleFulfill}
                 disabled={status === 'loading' || status === 'success'}
                 title={error || 'Fulfill via Shiprocket'}
                 className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap",
-                    status === 'idle' && "text-gray-500 bg-gray-50 border border-gray-200 hover:text-white hover:bg-black hover:border-black cursor-pointer",
-                    status === 'loading' && "text-blue-600 bg-blue-50 border border-blue-100 cursor-wait",
-                    status === 'success' && "text-emerald-600 bg-emerald-50 border border-emerald-100 cursor-default",
-                    status === 'error' && "text-red-600 bg-red-50 border border-red-200 cursor-pointer",
+                    "flex items-center justify-center gap-1.5 w-full px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider transition-all duration-300 whitespace-nowrap border",
+                    status === 'idle' && "text-gray-700 bg-gray-50 border-gray-200 hover:text-white hover:bg-black hover:border-black cursor-pointer",
+                    status === 'loading' && "text-blue-600 bg-blue-50 border-blue-100 cursor-wait",
+                    status === 'success' && "text-emerald-600 bg-emerald-50 border-emerald-100 cursor-default",
+                    status === 'error' && "text-red-600 bg-red-50 border-red-200 cursor-pointer",
                 )}
             >
                 {status === 'loading' ? (
