@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
                 subtitle="System overview and recent performance metrics."
             >
                 <div className="flex gap-3">
-                    <Link href="/static-v2-resource-policy-handler/products/new" className="px-6 py-2.5 bg-black text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-[#d4af37] transition-all duration-300">
+                    <Link href="/static-v2-resource-policy-handler/products/new" className="px-6 py-3 bg-black text-white text-xs font-extrabold tracking-widest uppercase rounded-full hover:bg-[#d4af37] transition-all duration-300 shadow-sm">
                         + New Product
                     </Link>
                 </div>
@@ -45,8 +45,8 @@ export default async function AdminDashboard() {
                             <ArrowUpRight className="w-5 h-5 text-gray-300 group-hover:text-black transition-colors" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-400">{stat.label}</span>
-                            <div className="text-4xl font-light tracking-tight mt-1">{stat.value}</div>
+                            <span className="text-[11px] font-extrabold tracking-[0.25em] uppercase text-gray-500">{stat.label}</span>
+                            <div className="text-5xl font-extrabold tracking-tight mt-2 text-black">{stat.value}</div>
                         </div>
                     </div>
                 ))}
@@ -56,43 +56,43 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 {/* Recent Orders Table */}
                 <div className="xl:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+                    <div className="p-8 border-b border-gray-100 flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <Clock className="w-5 h-5 text-[#d4af37]" />
-                            <h2 className="text-sm font-bold tracking-widest uppercase">Recent Transactions</h2>
+                            <h2 className="text-base font-extrabold tracking-widest uppercase">Recent Transactions</h2>
                         </div>
-                        <Link href="/static-v2-resource-policy-handler/orders" className="text-[10px] font-bold tracking-widest uppercase text-gray-400 hover:text-black flex items-center gap-1 transition-colors">
+                        <Link href="/static-v2-resource-policy-handler/orders" className="text-[11px] font-extrabold tracking-widest uppercase text-gray-500 hover:text-black flex items-center gap-1 transition-colors">
                             View All <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="text-[10px] font-bold tracking-widest uppercase text-gray-400 border-b border-gray-50">
+                                <tr className="text-[11px] font-extrabold tracking-widest uppercase text-gray-500 border-b border-gray-100">
                                     <th className="px-8 py-4">Reference</th>
                                     <th className="px-8 py-4">Customer</th>
                                     <th className="px-8 py-4">Amount</th>
                                     <th className="px-8 py-4">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-gray-100">
                                 {recentOrders?.map((order) => (
                                     <tr key={order.id} className="group hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-8 py-6 font-mono text-[10px] text-gray-400 uppercase">
+                                        <td className="px-8 py-6 font-mono text-xs font-bold text-gray-700 uppercase">
                                             #{order.id.slice(0, 8)}
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className="text-xs font-semibold text-gray-900">
+                                            <span className="text-sm font-extrabold text-gray-900">
                                                 {(order.profiles as any)?.full_name ?? 'Guest User'}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-6 text-xs font-medium text-black">
+                                        <td className="px-8 py-6 text-sm font-extrabold text-black">
                                             ₹{order.total.toLocaleString()}
                                         </td>
                                         <td className="px-8 py-6">
                                             <span className={cn(
-                                                "text-[9px] font-black tracking-widest uppercase px-3 py-1 rounded-full border",
-                                                order.status === 'pending' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                                "text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full border",
+                                                order.status === 'pending' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"
                                             )}>
                                                 {order.status}
                                             </span>
@@ -108,11 +108,11 @@ export default async function AdminDashboard() {
                 <div className="space-y-6">
                     <div className="bg-black rounded-3xl p-8 text-white relative overflow-hidden group">
                         <div className="relative z-10">
-                            <h3 className="text-xl font-light tracking-tight mb-2">Vault Management</h3>
-                            <p className="text-white/40 text-xs leading-relaxed mb-6">
+                            <h3 className="text-2xl font-extrabold tracking-tight mb-3">Vault Management</h3>
+                            <p className="text-white/60 text-sm font-medium leading-relaxed mb-6">
                                 Access your full inventory of luxury fragrances and manage collection details.
                             </p>
-                            <Link href="/static-v2-resource-policy-handler/products" className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-[#d4af37] hover:text-white transition-colors">
+                            <Link href="/static-v2-resource-policy-handler/products" className="inline-flex items-center gap-2 text-[11px] font-extrabold tracking-[0.25em] uppercase text-[#d4af37] hover:text-white transition-colors">
                                 Open Inventory <ArrowRight className="w-4 h-4" />
                             </Link>
                         </div>
@@ -121,7 +121,7 @@ export default async function AdminDashboard() {
                     </div>
 
                     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-                        <h3 className="text-xs font-bold tracking-widest uppercase mb-6 text-gray-400">System Shortcuts</h3>
+                        <h3 className="text-xs font-extrabold tracking-widest uppercase mb-6 text-gray-600">System Shortcuts</h3>
                         <div className="space-y-3">
                             {[
                                 { label: 'Manage Carousel', href: '/static-v2-resource-policy-handler/carousel' },
@@ -129,12 +129,12 @@ export default async function AdminDashboard() {
                                 { label: 'Collection Tags', href: '/static-v2-resource-policy-handler/collections' },
                                 { label: 'Resend Credentials', href: '/api/admin/resend-login', method: 'POST' },
                             ].map((link) => (
-                                <Link 
+                                <Link
                                     key={link.label}
                                     href={link.href}
-                                    className="flex justify-between items-center p-4 rounded-2xl border border-gray-50 hover:border-[#d4af37] hover:bg-gray-50 transition-all duration-300 group"
+                                    className="flex justify-between items-center p-4 rounded-2xl border border-gray-100 hover:border-[#d4af37] hover:bg-gray-50 transition-all duration-300 group"
                                 >
-                                    <span className="text-[10px] font-bold tracking-widest uppercase text-gray-600 group-hover:text-black">{link.label}</span>
+                                    <span className="text-[11px] font-extrabold tracking-widest uppercase text-gray-700 group-hover:text-black">{link.label}</span>
                                     <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#d4af37]" />
                                 </Link>
                             ))}

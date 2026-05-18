@@ -22,13 +22,14 @@ export default function OrderStatusBadge({ status }: { status: string }) {
         <span style={{
             display: 'inline-flex',
             alignItems: 'center',
-            padding: '4px 12px',
+            padding: '5px 14px',
             borderRadius: '9999px',
             fontSize: '12px',
-            fontWeight: 600,
+            fontWeight: 700,
+            letterSpacing: '0.02em',
             backgroundColor: style.bg,
             color: style.text,
-            border: `1px solid ${style.text}20`,
+            border: `1px solid ${style.text}25`,
             whiteSpace: 'nowrap'
         }}>
             <span style={{
@@ -36,7 +37,8 @@ export default function OrderStatusBadge({ status }: { status: string }) {
                 height: '6px',
                 borderRadius: '50%',
                 backgroundColor: style.text,
-                marginRight: '8px'
+                marginRight: '8px',
+                boxShadow: `0 0 0 3px ${style.text}15`
             }} />
             {style.label}
         </span>

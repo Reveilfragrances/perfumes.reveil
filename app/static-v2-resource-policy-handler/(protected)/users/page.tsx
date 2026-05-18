@@ -43,9 +43,9 @@ export default async function UsersPage() {
                 title="Users"
                 subtitle="Everyone who has signed up on the site."
             >
-                <div className="bg-white px-5 py-2 rounded-full border border-gray-100 shadow-sm">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Users: </span>
-                    <span className="text-sm font-bold text-black">{users?.length ?? 0}</span>
+                <div className="bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm">
+                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Users: </span>
+                    <span className="text-base font-extrabold text-black">{users?.length ?? 0}</span>
                 </div>
             </PageHeader>
 
@@ -60,53 +60,53 @@ export default async function UsersPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-xs font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-100 bg-gray-50">
-                                <th className="px-5 py-4">User ID</th>
-                                <th className="px-5 py-4">Name</th>
-                                <th className="px-5 py-4">Contact</th>
-                                <th className="px-5 py-4">Orders</th>
-                                <th className="px-5 py-4">Joined</th>
-                                <th className="px-5 py-4 text-right">Actions</th>
+                            <tr className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-gray-500 border-b border-gray-100 bg-gradient-to-b from-gray-50/80 to-white">
+                                <th className="px-5 py-5">User ID</th>
+                                <th className="px-5 py-5">Name</th>
+                                <th className="px-5 py-5">Contact</th>
+                                <th className="px-5 py-5">Orders</th>
+                                <th className="px-5 py-5">Joined</th>
+                                <th className="px-5 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {users?.map((profile: any) => (
                                 <tr key={profile.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-5 py-5">
-                                        <div className="text-sm font-mono font-semibold text-gray-700">
+                                        <div className="text-sm font-mono font-extrabold text-gray-900">
                                             #{profile.id.slice(0, 8).toUpperCase()}
                                         </div>
                                     </td>
                                     <td className="px-5 py-5">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-[#d4af37]/10 text-[#d4af37] flex items-center justify-center text-sm font-bold uppercase shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-[#d4af37]/15 text-[#8a6d18] flex items-center justify-center text-base font-extrabold uppercase shrink-0">
                                                 {profile.first_name?.[0] || profile.full_name?.[0] || '?'}
                                             </div>
-                                            <div className="text-sm font-semibold text-gray-900">
+                                            <div className="text-sm font-extrabold text-gray-900">
                                                 {profile.first_name || profile.full_name || 'Anonymous'} {profile.last_name || ''}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-5 py-5">
                                         <div className="space-y-1.5">
-                                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                                <Mail className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                                                 <span className="truncate max-w-[220px]">{profile.email || '—'}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                                                <Phone className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                                                 {profile.phone || '—'}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-5 py-5">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-sm font-extrabold text-gray-800 min-w-[36px] justify-center">
                                             {profile.orders?.length || 0}
                                         </span>
                                     </td>
                                     <td className="px-5 py-5">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                        <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                            <Calendar className="w-3.5 h-3.5 text-gray-500" />
                                             {profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                                         </div>
                                     </td>
@@ -114,12 +114,12 @@ export default async function UsersPage() {
                                         {profile.orders?.length > 0 ? (
                                             <Link
                                                 href={`/static-v2-resource-policy-handler/orders?search=${profile.phone}`}
-                                                className="inline-flex items-center gap-1 text-sm font-semibold text-[#d4af37] hover:text-black transition-colors"
+                                                className="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-[#8a6d18] hover:text-black transition-colors"
                                             >
                                                 View orders <ArrowRight className="w-3.5 h-3.5" />
                                             </Link>
                                         ) : (
-                                            <span className="text-sm text-gray-300">—</span>
+                                            <span className="text-sm font-bold text-gray-300">—</span>
                                         )}
                                     </td>
                                 </tr>
@@ -129,10 +129,12 @@ export default async function UsersPage() {
                 </div>
 
                 {(!users || users.length === 0) && (
-                    <div className="py-24 text-center bg-gray-50">
-                        <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-base font-semibold text-gray-500">No users yet</p>
-                        <p className="text-sm text-gray-400 mt-1">New signups will show up here.</p>
+                    <div className="py-28 text-center bg-gradient-to-b from-gray-50/50 to-white">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#d4af37]/10 mb-6">
+                            <Users className="w-7 h-7 text-[#d4af37]" />
+                        </div>
+                        <p className="text-lg font-extrabold text-gray-800">No users yet</p>
+                        <p className="text-sm font-semibold text-gray-500 mt-2">New signups will show up here.</p>
                     </div>
                 )}
             </div>

@@ -51,7 +51,7 @@ export default async function AdminProductsPage({
                         currentCategory={categoryFilter}
                     />
                     <Link href="/static-v2-resource-policy-handler/products/new">
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-black text-white text-sm font-semibold rounded-full hover:bg-[#d4af37] transition-all duration-300">
+                        <button className="flex items-center gap-2 px-5 py-3 bg-black text-white text-sm font-extrabold uppercase tracking-wider rounded-full hover:bg-[#d4af37] transition-all duration-300 shadow-sm">
                             <Plus className="w-4 h-4" />
                             Add Product
                         </button>
@@ -74,14 +74,14 @@ export default async function AdminProductsPage({
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-xs font-semibold uppercase tracking-wider text-gray-500 border-b border-gray-100 bg-gray-50">
-                                <th className="px-5 py-4">Image</th>
-                                <th className="px-5 py-4">Name</th>
-                                <th className="px-5 py-4">Price</th>
-                                <th className="px-5 py-4">Stock</th>
-                                <th className="px-5 py-4">Category</th>
-                                <th className="px-5 py-4">Featured</th>
-                                <th className="px-5 py-4 text-right">Actions</th>
+                            <tr className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-gray-500 border-b border-gray-100 bg-gradient-to-b from-gray-50/80 to-white">
+                                <th className="px-5 py-5">Image</th>
+                                <th className="px-5 py-5">Name</th>
+                                <th className="px-5 py-5">Price</th>
+                                <th className="px-5 py-5">Stock</th>
+                                <th className="px-5 py-5">Category</th>
+                                <th className="px-5 py-5">Featured</th>
+                                <th className="px-5 py-5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -97,17 +97,17 @@ export default async function AdminProductsPage({
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xs text-gray-300 border border-dashed border-gray-200">
+                                            <div className="w-14 h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xs font-bold text-gray-400 border border-dashed border-gray-200">
                                                 No image
                                             </div>
                                         )}
                                     </td>
                                     <td className="px-5 py-5">
-                                        <div className="text-sm font-semibold text-gray-900">{product.name}</div>
-                                        <div className="text-xs text-gray-400 mt-1 font-mono">REF: {product.id.slice(0, 8).toUpperCase()}</div>
+                                        <div className="text-sm font-extrabold text-gray-900">{product.name}</div>
+                                        <div className="text-[11px] text-gray-500 mt-1 font-mono font-bold">REF: {product.id.slice(0, 8).toUpperCase()}</div>
                                     </td>
                                     <td className="px-5 py-5">
-                                        <div className="text-sm font-semibold text-black">₹{product.price.toLocaleString()}</div>
+                                        <div className="text-base font-extrabold text-black">₹{product.price.toLocaleString()}</div>
                                     </td>
                                     <td className="px-5 py-5">
                                         <div className="flex items-center gap-2">
@@ -115,30 +115,30 @@ export default async function AdminProductsPage({
                                                 "w-2 h-2 rounded-full",
                                                 product.stock < 5 ? "bg-red-500 animate-pulse" : "bg-emerald-500"
                                             )} />
-                                            <span className="text-sm font-semibold text-gray-800">
-                                                {product.stock} <span className="text-gray-400 font-normal">in stock</span>
+                                            <span className="text-sm font-extrabold text-gray-900">
+                                                {product.stock} <span className="text-gray-500 font-semibold">in stock</span>
                                             </span>
                                         </div>
                                     </td>
                                     <td className="px-5 py-5">
-                                        <span className="inline-flex px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700 capitalize">
+                                        <span className="inline-flex px-3 py-1 rounded-full bg-gray-100 text-xs font-extrabold text-gray-800 capitalize uppercase tracking-wider">
                                             {product.category ?? 'Uncategorized'}
                                         </span>
                                     </td>
                                     <td className="px-5 py-5">
                                         {product.is_featured ? (
-                                            <span className="inline-flex px-3 py-1 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold border border-[#d4af37]/20">
+                                            <span className="inline-flex px-3 py-1 rounded-full bg-[#d4af37]/15 text-[#8a6d18] text-xs font-extrabold uppercase tracking-wider border border-[#d4af37]/30">
                                                 Featured
                                             </span>
                                         ) : (
-                                            <span className="text-sm text-gray-400">Standard</span>
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Standard</span>
                                         )}
                                     </td>
                                     <td className="px-5 py-5">
-                                        <div className="flex items-center justify-end gap-3">
+                                        <div className="flex items-center justify-end gap-2">
                                             <Link
                                                 href={`/static-v2-resource-policy-handler/products/${product.id}/edit`}
-                                                className="text-sm font-semibold text-gray-600 hover:text-black transition-colors"
+                                                className="inline-flex items-center px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider text-gray-700 border border-gray-200 hover:text-white hover:bg-black hover:border-black transition-all"
                                             >
                                                 Edit
                                             </Link>
@@ -152,12 +152,12 @@ export default async function AdminProductsPage({
                 </div>
 
                 {(!products || products.length === 0) && (
-                    <div className="py-24 text-center bg-gray-50">
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <Tag className="w-6 h-6 text-gray-300" />
+                    <div className="py-28 text-center bg-gradient-to-b from-gray-50/50 to-white">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#d4af37]/10 mb-6">
+                            <Tag className="w-7 h-7 text-[#d4af37]" />
                         </div>
-                        <p className="text-base font-semibold text-gray-500">No products yet</p>
-                        <Link href="/static-v2-resource-policy-handler/products/new" className="text-[#d4af37] text-sm font-semibold mt-3 inline-block hover:underline underline-offset-4">
+                        <p className="text-lg font-extrabold text-gray-800">No products yet</p>
+                        <Link href="/static-v2-resource-policy-handler/products/new" className="text-[#d4af37] text-sm font-extrabold mt-3 inline-block hover:underline underline-offset-4 uppercase tracking-wider">
                             + Add your first product
                         </Link>
                     </div>

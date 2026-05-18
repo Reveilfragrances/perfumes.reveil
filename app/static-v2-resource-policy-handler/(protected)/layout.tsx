@@ -29,13 +29,21 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="flex min-h-screen bg-[#fcfcfc]">
+        <div className="flex min-h-screen bg-[#fcfcfc] admin-panel">
             <AdminSidebar />
             <main className="flex-1 overflow-y-auto">
                 <div className="p-4 md:p-8 lg:p-12">
                     {children}
                 </div>
             </main>
+            {/* Strengthen base content weight across the admin panel so labels,
+                cells, and helper text read crisply without touching every page. */}
+            <style>{`
+                .admin-panel { font-weight: 500; }
+                .admin-panel p, .admin-panel span, .admin-panel td, .admin-panel li, .admin-panel a, .admin-panel label, .admin-panel button { font-weight: 600; }
+                .admin-panel h1, .admin-panel h2, .admin-panel h3, .admin-panel h4 { font-weight: 800; letter-spacing: -0.01em; }
+                .admin-panel th { font-weight: 800 !important; }
+            `}</style>
         </div>
     )
 }
