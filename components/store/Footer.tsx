@@ -311,24 +311,6 @@ export function Footer({ theme = 'light' }: FooterProps) {
                         <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" alt="Paytm" style={{ height: '14px', filter: isLight ? 'none' : 'brightness(0) invert(1)' }} />
                     </div>
 
-                    {/* Designed By */}
-                    <div style={{
-                        fontSize: '10px',
-                        letterSpacing: '0.3em',
-                        textTransform: 'uppercase',
-                        color: isLight ? '#888' : 'rgba(255,255,255,0.4)',
-                        fontFamily: 'var(--font-baskerville)',
-                        textAlign: 'center'
-                    }}>
-                        Designed by <a
-                            href="https://webcros.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 600, letterSpacing: '0.2em' }}
-                        >
-                            WebCros
-                        </a>
-                    </div>
                 </div>
             </div>
         </footer>

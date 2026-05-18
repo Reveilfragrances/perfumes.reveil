@@ -160,7 +160,6 @@ export async function POST(request: Request) {
             // can't fulfil. Best-effort tag the order as abandoned so the
             // dashboard reflects reality and the user can retry cleanly.
             try {
-                // @ts-expect-error – razorpay-node typings omit edit(), but the REST endpoint exists.
                 await razorpay.orders.edit(rpOrderId, { notes: { abandoned: 'true', reason: snapshotError.code || 'snapshot_failed' } })
             } catch (cleanupErr: any) {
                 console.error('[razorpay] orphan-order cleanup failed:', cleanupErr?.message)
