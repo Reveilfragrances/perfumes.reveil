@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, Loader2, CheckCircle2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Truck, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface FulfillButtonProps {
     orderId: string
@@ -10,18 +10,16 @@ interface FulfillButtonProps {
 }
 
 export default function FulfillButton({ orderId, isFulfilled }: FulfillButtonProps) {
-    const [loading, setLoading] = useState(false)
-    const [status, setStatus] = useState<'idle' | 'success' | 'error'>(isFulfilled ? 'success' : 'idle')
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(isFulfilled ? 'success' : 'idle')
     const [error, setError] = useState<string | null>(null)
 
     async function handleFulfill() {
-        if (loading || status === 'success') return
-        
-        setLoading(true)
+        if (status === 'loading' || status === 'success') return
+
+        setStatus('loading')
         setError(null)
-        
+
         try {
-            // Updated to the correct Shiprocket order creation API
             const res = await fetch('/api/shiprocket/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -35,80 +33,60 @@ export default function FulfillButton({ orderId, isFulfilled }: FulfillButtonPro
             }
 
             setStatus('success')
-            // Refresh parent after a delay to show updated state
-            setTimeout(() => {
-                window.location.reload()
-            }, 1500)
+            setTimeout(() => window.location.reload(), 1200)
         } catch (err: any) {
             console.error('Shiprocket Error:', err)
-            setError(err.message)
+            setError(err.message || 'Unknown error')
             setStatus('error')
-            // Reset error after 3s
-            setTimeout(() => setStatus('idle'), 3000)
-        } finally {
-            setLoading(false)
+            setTimeout(() => {
+                setStatus('idle')
+                setError(null)
+            }, 5000)
         }
     }
 
     return (
-        <div className="relative">
-            <motion.button
-                whileHover={status === 'idle' ? { scale: 1.02, backgroundColor: '#000', color: '#fff' } : {}}
-                whileTap={status === 'idle' ? { scale: 0.98 } : {}}
+        <div className="relative inline-flex">
+            <button
                 onClick={handleFulfill}
-                disabled={loading || status === 'success'}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 18px',
-                    borderRadius: '99px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.15em',
-                    transition: 'all 0.3s ease',
-                    cursor: (loading || status === 'success') ? 'not-allowed' : 'pointer',
-                    background: status === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0,0,0,0.03)',
-                    color: status === 'success' ? '#10b981' : '#666',
-                    border: status === 'success' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(0,0,0,0.05)',
-                }}
+                disabled={status === 'loading' || status === 'success'}
+                title={error || 'Fulfill via Shiprocket'}
+                className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap",
+                    status === 'idle' && "text-gray-500 bg-gray-50 border border-gray-200 hover:text-white hover:bg-black hover:border-black cursor-pointer",
+                    status === 'loading' && "text-blue-600 bg-blue-50 border border-blue-100 cursor-wait",
+                    status === 'success' && "text-emerald-600 bg-emerald-50 border border-emerald-100 cursor-default",
+                    status === 'error' && "text-red-600 bg-red-50 border border-red-200 cursor-pointer",
+                )}
             >
-                {loading ? (
-                    <Loader2 size={12} className="animate-spin" />
+                {status === 'loading' ? (
+                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
                 ) : status === 'success' ? (
-                    <CheckCircle2 size={12} />
+                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                ) : status === 'error' ? (
+                    <AlertCircle className="w-3 h-3 shrink-0" />
                 ) : (
-                    <Truck size={12} />
+                    <Truck className="w-3 h-3 shrink-0" />
                 )}
-                
-                {loading ? 'Processing...' : status === 'success' ? 'Fulfilled' : 'Fulfill via Shiprocket'}
-            </motion.button>
+                <span>
+                    {status === 'loading'
+                        ? 'Sending'
+                        : status === 'success'
+                        ? 'Fulfilled'
+                        : status === 'error'
+                        ? 'Retry'
+                        : 'Fulfill'}
+                </span>
+            </button>
 
-            <AnimatePresence>
-                {error && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            marginTop: '6px',
-                            background: '#fee2e2',
-                            color: '#ef4444',
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            fontSize: '9px',
-                            fontWeight: 600,
-                            lineHeight: 1.4,
-                            maxWidth: '220px',
-                            wordBreak: 'break-word',
-                            border: '1px solid #fecaca'
-                        }}
-                    >
-                        {error}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Compact error tooltip — absolute so it doesn't push table layout around */}
+            {error && status === 'error' && (
+                <div
+                    className="absolute top-full left-0 mt-1 z-20 max-w-[240px] rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-[10px] font-medium leading-snug text-red-700 shadow-md"
+                >
+                    {error}
+                </div>
+            )}
         </div>
     )
 }

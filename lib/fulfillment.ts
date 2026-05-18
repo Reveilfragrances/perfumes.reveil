@@ -41,20 +41,33 @@ export async function createShiprocketOrderForOrderId(orderId: string) {
 
   const address = (order.shipping_address as any) || {}
 
+  // Shiprocket expects "YYYY-MM-DD HH:mm" (with a space). The default
+  // ISO string uses "T" which Shiprocket rejects as "Invalid Data".
+  const orderDate = new Date(order.created_at).toISOString().slice(0, 16).replace('T', ' ')
+
+  // Shiprocket expects 10-digit Indian mobile, no +91/91 prefix or spaces.
+  const normalizePhone = (raw: unknown): string => {
+    const digits = String(raw ?? '').replace(/\D/g, '')
+    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2)
+    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1)
+    return digits.slice(-10) // fall back to last 10 digits
+  }
+  const phone = normalizePhone(address.phone || order.profiles?.phone) || '0000000000'
+
   const payload = {
     order_id: String(order.id).slice(0, 12).toUpperCase(),
-    order_date: new Date(order.created_at).toISOString().slice(0, 19),
+    order_date: orderDate,
     pickup_location: process.env.SHIPROCKET_PICKUP_NAME || 'Primary',
 
-    billing_customer_name: address.full_name || address.name || order.profiles?.full_name || 'Customer',
-    billing_address: address.address_line1 || address.line1 || address.address || 'Address line missing',
-    billing_address_2: address.address_line2 || address.line2 || '',
-    billing_city: address.city || 'City missing',
-    billing_pincode: address.pincode || address.postal_code || '000000',
-    billing_state: address.state || 'State missing',
+    billing_customer_name: String(address.full_name || address.name || order.profiles?.full_name || 'Customer'),
+    billing_address: String(address.address_line1 || address.line1 || address.address || 'Address line missing'),
+    billing_address_2: String(address.address_line2 || address.line2 || ''),
+    billing_city: String(address.city || 'City missing'),
+    billing_pincode: String(address.pincode || address.postal_code || '000000'),
+    billing_state: String(address.state || 'State missing'),
     billing_country: 'India',
-    billing_email: order.profiles?.email || 'email@missing.com',
-    billing_phone: address.phone || order.profiles?.phone || '0000000000',
+    billing_email: String(order.profiles?.email || 'email@missing.com'),
+    billing_phone: phone,
 
     shipping_is_billing: true,
 
