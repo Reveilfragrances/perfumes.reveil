@@ -3,7 +3,7 @@ import localFont from 'next/font/local'
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { ALL_KEYWORDS, SITE_URL, SITE_NAME, BRAND_NAME, LEGAL_NAME } from "@/lib/seo/keywords";
-import { organizationSchema, websiteSchema, localBusinessSchema } from "@/lib/seo/schema";
+import { organizationSchema, websiteSchema, localBusinessSchema, siteNavigationElementSchema } from "@/lib/seo/schema";
 
 const bungee = localFont({
   src: '../public/fonts/Bungee-Regular.woff2',
@@ -100,12 +100,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Sitewide JSON-LD — Organization + WebSite + LocalBusiness. Google reads
-  // these to populate the knowledge panel, sitelinks search box, and local pack.
+  // Sitewide JSON-LD — Organization + WebSite + LocalBusiness + SiteNavigation
+  // Google reads these to populate the knowledge panel, sitelinks search box, and local pack.
   const sitewideSchema = [
     organizationSchema(),
     websiteSchema(),
     localBusinessSchema(),
+    siteNavigationElementSchema(),
   ]
 
   return (

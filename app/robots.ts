@@ -15,11 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           '/cart',
           '/checkout',
           '/auth',
-          '/orders',
-          '/wishlist',
           '/address-book',
-          '/profile',
-          '/track/',
         ],
       },
       // Block aggressive scrapers and AI crawlers that don't add SEO value

@@ -134,3 +134,43 @@ export function localBusinessSchema() {
     url: SITE_URL,
   }
 }
+
+// ── SITE NAVIGATION (forces sitelinks) ──────────────────────────────────────
+export function siteNavigationElementSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    'itemListElement': [
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 1,
+        'name': 'Shop All Perfumes',
+        'url': `${SITE_URL}/products`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 2,
+        'name': 'Track Order',
+        'url': `${SITE_URL}/track-order`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 3,
+        'name': 'My Orders',
+        'url': `${SITE_URL}/orders`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 4,
+        'name': 'Contact Us',
+        'url': `${SITE_URL}/contact`
+      },
+      {
+        '@type': 'SiteNavigationElement',
+        'position': 5,
+        'name': 'About Reveil',
+        'url': `${SITE_URL}/about`
+      }
+    ]
+  }
+}
