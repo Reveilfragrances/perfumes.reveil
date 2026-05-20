@@ -14,9 +14,10 @@ export type Product = {
         base: string
     }
     technical_specs?: {
-        volume: string
-        concentration: string
-        longevity: string
+        volume?: string
+        concentration?: string
+        longevity?: string
+        sizes?: string[]
     }
 }
 

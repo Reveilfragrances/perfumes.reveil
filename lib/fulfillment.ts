@@ -184,7 +184,27 @@ export async function createShiprocketOrderForOrderId(orderId: string) {
   })
 
   if (!data?.order_id) {
-    throw new Error(data?.message || 'Failed to create Shiprocket order')
+    // Shiprocket's `errors` is usually { field_name: ["reason", ...], ... }.
+    // Flatten it into a human-readable list so the admin sees exactly which
+    // field is failing ("billing_phone: must be 10 digits") instead of a
+    // useless "Invalid Data".
+    let fieldDetail = ''
+    if (data?.errors && typeof data.errors === 'object') {
+      const parts: string[] = []
+      for (const [field, msgs] of Object.entries(data.errors as Record<string, unknown>)) {
+        const list = Array.isArray(msgs) ? msgs : [msgs]
+        parts.push(`${field}: ${list.join(', ')}`)
+      }
+      if (parts.length) fieldDetail = ` — ${parts.join(' | ')}`
+    }
+    const baseMsg = data?.message || 'Failed to create Shiprocket order'
+    // Also log the payload we sent (with phone masked) so we can see which
+    // input Shiprocket disliked.
+    console.error('[fulfillment] Shiprocket rejected payload:', JSON.stringify({
+      ...payload,
+      billing_phone: payload.billing_phone ? `***${String(payload.billing_phone).slice(-4)}` : payload.billing_phone,
+    }, null, 2))
+    throw new Error(`${baseMsg}${fieldDetail}`)
   }
 
   const { error: updateError } = await admin

@@ -156,7 +156,10 @@ async function getCachedToken(): Promise<string> {
 
 /**
  * Helper for authenticated Shiprocket requests. Reuses a cached token so we
- * don't re-login on every call.
+ * don't re-login on every call. On non-2xx responses, logs the full body
+ * (which contains the field-level reasons behind a generic "Invalid Data"
+ * message) and attaches `errors` to the returned object so callers can
+ * surface a usable error to the admin.
  */
 export async function shiprocketFetch(endpoint: string, options: RequestInit = {}) {
     const token = await getCachedToken();
@@ -177,5 +180,13 @@ export async function shiprocketFetch(endpoint: string, options: RequestInit = {
         cachedTokenExpiry = null;
     }
 
-    return res.json();
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+        // Shiprocket returns "Invalid Data" with a per-field `errors` object on
+        // 422. Logging the whole body is the only way to see which field failed.
+        console.error(`[shiprocket] ${endpoint} → ${res.status}`, JSON.stringify(data, null, 2));
+    }
+
+    return data;
 }
