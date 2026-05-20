@@ -2,6 +2,62 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { shiprocketFetch } from '@/lib/shiprocket'
 
 /**
+ * Pick the cheapest serviceable courier for a destination and assign AWB.
+ * Returns null if no courier is serviceable. Called after order creation so
+ * the customer's "your order has shipped" email can include the AWB +
+ * courier name (instead of "Being assigned…").
+ */
+export async function assignBestCourier(opts: {
+  orderId: string
+  shipmentId: string
+  deliveryPincode: string
+  cod: boolean
+}): Promise<{ awb: string; courier_name: string } | null> {
+  const admin = createAdminClient()
+  const pickup = process.env.SHIPROCKET_PICKUP_PINCODE || '760009'
+
+  const serviceRes = await shiprocketFetch(
+    `/courier/serviceability/?pickup_postcode=${encodeURIComponent(pickup)}&delivery_postcode=${encodeURIComponent(opts.deliveryPincode)}&weight=0.5&cod=${opts.cod ? 1 : 0}`
+  )
+
+  const couriers = serviceRes?.data?.available_courier_companies ?? []
+  if (couriers.length === 0) {
+    console.warn('[assignBestCourier] No couriers serviceable for pincode', opts.deliveryPincode)
+    return null
+  }
+  const best = couriers.sort((a: any, b: any) => Number(a.rate) - Number(b.rate))[0]
+
+  const assignRes = await shiprocketFetch('/courier/assign/awb', {
+    method: 'POST',
+    body: JSON.stringify({
+      shipment_id: opts.shipmentId,
+      courier_id: String(best.courier_company_id),
+    }),
+  })
+
+  const awbData = assignRes?.response?.data
+  const awb = (assignRes?.awb_assign_status === 1 || assignRes?.status === 1)
+    ? (awbData?.awb_code || assignRes?.awb_code)
+    : null
+
+  if (!awb) {
+    console.error('[assignBestCourier] AWB assignment failed:', assignRes?.message)
+    return null
+  }
+
+  await admin
+    .from('orders')
+    .update({
+      awb_code: awb,
+      courier_name: best.courier_name,
+      status: 'shipped',
+    })
+    .eq('id', opts.orderId)
+
+  return { awb, courier_name: best.courier_name }
+}
+
+/**
  * Build the Shiprocket order payload from an order_id, call Shiprocket,
  * and update the order row with the resulting shiprocket_order_id /
  * shipment_id. This is internal — only call from server code that has
