@@ -167,14 +167,19 @@ export default function AddressBookPage() {
     const inputStyle: React.CSSProperties = {
         width: '100%', background: '#ffffff', border: 'none',
         borderBottom: '1px solid rgba(0,0,0,0.12)', color: '#1a1a1a',
-        fontSize: '14px', padding: '12px 14px', outline: 'none',
+        fontSize: isMobile ? '13px' : '14px',
+        padding: isMobile ? '8px 0' : '12px 14px',
+        outline: 'none',
         fontFamily: 'var(--font-baskerville)',
         boxSizing: 'border-box'
     }
 
     const labelStyle: React.CSSProperties = {
-        fontSize: '9px', color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase',
-        letterSpacing: '0.2em', display: 'block', marginBottom: '6px'
+        fontSize: isMobile ? '8px' : '9px',
+        color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase',
+        letterSpacing: isMobile ? '0.15em' : '0.2em',
+        display: 'block',
+        marginBottom: isMobile ? '4px' : '6px'
     }
 
     return (
