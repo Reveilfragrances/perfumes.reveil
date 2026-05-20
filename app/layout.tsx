@@ -28,11 +28,11 @@ const baskerville = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Reveil Fragrance — Buy Luxury Perfumes Online India | Long Lasting Eau de Parfum",
-    template: "%s | Reveil Fragrance — Luxury Perfumes India"
+    default: "Reveil Fragrance: Luxury Perfumes Online India | Free Shipping & COD",
+    template: "%s | Reveil Fragrance"
   },
   description:
-    "Buy luxury perfumes online in India at Reveil Fragrance. Long-lasting eau de parfum for men & women, authentic Arabian attars, premium oudh, and luxury home fragrances. Original products. Cash on delivery. Free shipping above ₹249.",
+    "✨ Shop India's finest long-lasting perfumes from ₹499. Men's & women's eau de parfum, authentic Arabian attars, premium oudh. 100% original. Free shipping ₹249+. Cash on Delivery. Same-day dispatch.",
   keywords: ALL_KEYWORDS as unknown as string[],
   authors: [{ name: `${BRAND_NAME} Studio` }],
   creator: BRAND_NAME,
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
       "Long-lasting luxury perfumes, Arabian attars, and premium oudh. Best perfumes for men & women in India. Cash on delivery. Free shipping above ₹249.",
     images: [
       {
-        url: "/og-main.jpg",
+        url: "/luxury_perfume_hero_png_1775752819988.png",
         width: 1200,
         height: 630,
         alt: "Reveil Fragrance — Luxury Perfumes India",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
     description:
       "Shop original long-lasting perfumes, authentic attars, and premium oudh from Reveil. Cash on delivery across India.",
     creator: "@reveilfragrance",
-    images: ["/og-main.jpg"],
+    images: ["/luxury_perfume_hero_png_1775752819988.png"],
   },
   robots: {
     index: true,
