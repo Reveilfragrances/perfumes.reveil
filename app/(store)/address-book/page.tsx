@@ -36,7 +36,7 @@ export default function AddressBookPage() {
     const [isMobile, setIsMobile] = useState(false)
 
     useEffect(() => {
-        const checkRes = () => setIsMobile(window.innerWidth < 768)
+        const checkRes = () => setIsMobile(window.innerWidth < 900)
         checkRes()
         window.addEventListener('resize', checkRes)
         return () => window.removeEventListener('resize', checkRes)
@@ -326,26 +326,26 @@ export default function AddressBookPage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             onSubmit={handleSubmit}
-                            style={{ background: '#ffffff', border: '1px solid rgba(212,175,55,0.3)', borderRadius: '4px', padding: isMobile ? '24px' : '40px' }}>
+                            style={{ background: '#ffffff', border: '1px solid rgba(212,175,55,0.3)', borderRadius: '4px', padding: isMobile ? '16px' : '40px' }}>
 
-                            <h3 style={{ fontSize: '12px', fontWeight: 900, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4af37', marginBottom: '32px' }}>
+                            <h3 style={{ fontSize: isMobile ? '10px' : '12px', fontWeight: 900, letterSpacing: isMobile ? '0.3em' : '0.4em', textTransform: 'uppercase', color: '#d4af37', marginBottom: isMobile ? '20px' : '32px' }}>
                                 {editingId ? 'Edit Address' : 'New Address'}
                             </h3>
 
                             {/* Label Selector */}
-                            <div style={{ marginBottom: '28px' }}>
+                            <div style={{ marginBottom: isMobile ? '18px' : '28px' }}>
                                 <span style={labelStyle}>Label</span>
-                                <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px' }}>
                                     {['Home', 'Work', 'Other'].map(l => (
                                         <button key={l} type="button" onClick={() => setForm({ ...form, label: l })}
-                                            style={{ padding: '8px 20px', background: form.label === l ? '#d4af37' : 'transparent', border: `1px solid ${form.label === l ? '#d4af37' : 'rgba(0,0,0,0.12)'}`, color: form.label === l ? '#000' : 'rgba(0,0,0,0.6)', borderRadius: '2px', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                                            style={{ padding: isMobile ? '6px 12px' : '8px 20px', background: form.label === l ? '#d4af37' : 'transparent', border: `1px solid ${form.label === l ? '#d4af37' : 'rgba(0,0,0,0.12)'}`, color: form.label === l ? '#000' : 'rgba(0,0,0,0.6)', borderRadius: '2px', cursor: 'pointer', fontSize: isMobile ? '9px' : '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? '0.15em' : '0.2em' }}>
                                             {l}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '20px' : '28px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '14px' : '28px' }}>
                                 <div>
                                     <label style={labelStyle}>Full Name *</label>
                                     <input style={inputStyle} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your full name" required />
@@ -392,16 +392,16 @@ export default function AddressBookPage() {
                                 </div>
                             </div>
 
-                            {error && <p style={{ color: '#ff4d4d', fontSize: '11px', marginTop: '20px' }}>{error}</p>}
+                            {error && <p style={{ color: '#ff4d4d', fontSize: '11px', marginTop: isMobile ? '14px' : '20px' }}>{error}</p>}
 
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+                            <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', marginTop: isMobile ? '20px' : '32px' }}>
                                 <motion.button type="submit" disabled={saving} whileHover={{ scale: 1.01 }}
-                                    style={{ flex: 1, padding: '16px', background: '#d4af37', color: '#000', border: 'none', borderRadius: '2px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    style={{ flex: 1, padding: isMobile ? '12px' : '16px', background: '#d4af37', color: '#000', border: 'none', borderRadius: '2px', fontSize: isMobile ? '9px' : '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: isMobile ? '0.2em' : '0.3em', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                                     {saving ? 'Saving...' : 'Save Address'}
                                 </motion.button>
                                 <button type="button" onClick={() => { setShowForm(false); setEditingId(null); setError(null) }}
-                                    style={{ padding: '16px 28px', background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'rgba(0,0,0,0.6)', borderRadius: '2px', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                                    style={{ padding: isMobile ? '12px 18px' : '16px 28px', background: 'transparent', border: '1px solid rgba(0,0,0,0.12)', color: 'rgba(0,0,0,0.6)', borderRadius: '2px', cursor: 'pointer', fontSize: isMobile ? '9px' : '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: isMobile ? '0.15em' : '0.2em' }}>
                                     Cancel
                                 </button>
                             </div>

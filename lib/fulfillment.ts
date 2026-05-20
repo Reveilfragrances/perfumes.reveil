@@ -143,12 +143,22 @@ export async function createShiprocketOrderForOrderId(orderId: string) {
   }
   const cleanStr = (v: unknown) => String(v ?? '').trim().replace(/\s+/g, ' ')
 
+  // Shiprocket requires first name and last name as separate fields. We only
+  // store full_name, so split on the first space. If there's only one word,
+  // use "." for last name (Shiprocket accepts a single character, just not
+  // an empty string).
+  const rawName = cleanStr(address.full_name || address.name || order.profiles?.full_name) || 'Customer'
+  const nameParts = rawName.split(' ').filter(Boolean)
+  const firstName = nameParts[0] || 'Customer'
+  const lastName = nameParts.slice(1).join(' ') || '.'
+
   const payload = {
     order_id: String(order.id).slice(0, 12).toUpperCase(),
     order_date: orderDate,
     pickup_location: process.env.SHIPROCKET_PICKUP_NAME || 'Primary',
 
-    billing_customer_name: cleanStr(address.full_name || address.name || order.profiles?.full_name) || 'Customer',
+    billing_customer_name: firstName,
+    billing_last_name: lastName,
     billing_address: cleanStr(address.address_line1 || address.line1 || address.address) || 'Address line missing',
     billing_address_2: cleanStr(address.address_line2 || address.line2),
     billing_city: cleanStr(address.city) || 'City missing',
