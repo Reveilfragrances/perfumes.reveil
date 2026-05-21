@@ -84,10 +84,13 @@ export async function GET(_req: Request, { params }: { params: Params }) {
   const grandTotal = Number(order.total || itemsSubtotal + shipping + cod)
 
   // Reveil prices are MRP-inclusive of 18% GST (standard for perfume HSN 3303).
-  // Reverse-calculate the tax breakdown so the invoice is GST-compliant.
+  // We reverse-calculate GST from the items subtotal ONLY — shipping is a
+  // separate line and is not taxed here, so adding it to taxableValue would
+  // make the rows not sum to the grand total. The breakdown shown is:
+  //   Subtotal (Taxable) + GST + Shipping (+ COD) = Total
   const GST_RATE = 0.18
-  const taxableValue = grandTotal / (1 + GST_RATE)
-  const totalGst = grandTotal - taxableValue
+  const taxableValue = itemsSubtotal / (1 + GST_RATE)
+  const totalGst = itemsSubtotal - taxableValue
   // Whether to split CGST/SGST (intra-state) or IGST (inter-state).
   // Pickup is Odisha — anything else is inter-state.
   const addr = (order.shipping_address as any) || {}

@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/seo/keywords'
 export const metadata: Metadata = {
   title: 'Shipping & Delivery Policy India — Reveil Fragrance',
   description:
-    'Pan-India shipping policy for Reveil Fragrance. Free delivery on orders above ₹249, cash on delivery available, delivered in 3–7 business days via Shiprocket.',
+    'Pan-India shipping policy for Reveil Fragrance. Free delivery on orders above ₹250 — ₹60 online / ₹80 COD on smaller orders. Delivered in 3–7 business days via Shiprocket.',
   keywords: [
     'Reveil shipping policy', 'perfume delivery India', 'free shipping perfume India',
     'cash on delivery perfume', 'pan India perfume delivery',

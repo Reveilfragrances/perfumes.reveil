@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { clampString, isEmail, normalizeIndianPhone } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { verifyTurnstile } from '@/lib/captcha'
+import { sendContactInquiryEmail } from '@/lib/utils/email'
 
 const ADMIN_RECIPIENT = 'reveilfragrances@gmail.com'
 
@@ -54,13 +55,25 @@ export async function POST(req: Request) {
             }])
 
         if (dbError) {
-            console.error('Contact DB error')
-            return NextResponse.json({ error: 'Could not submit inquiry' }, { status: 500 })
+            console.error('[contact] DB error:', dbError.message)
+            // Still try to email the admin — losing the DB row is bad but the
+            // operator will at least see the inquiry in their inbox.
+            sendContactInquiryEmail({ name, email, phone, message }).catch((e) =>
+                console.error('[contact] email fallback failed:', e?.message),
+            )
+            return NextResponse.json({ error: 'Could not save inquiry to database', reason: dbError.message }, { status: 500 })
         }
 
+        // Fire-and-forget the admin notification email. We don't block the
+        // success response on it — even if Resend is misconfigured the inquiry
+        // is safely persisted in the contact_inquiries table.
+        sendContactInquiryEmail({ name, email, phone, message }).catch((e) =>
+            console.error('[contact] admin email failed (non-fatal):', e?.message),
+        )
+
         return NextResponse.json({ success: true })
-    } catch (error) {
-        console.error('Contact API Error')
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    } catch (error: any) {
+        console.error('[contact] API Error:', error?.message)
+        return NextResponse.json({ error: 'Internal Server Error', reason: error?.message }, { status: 500 })
     }
 }

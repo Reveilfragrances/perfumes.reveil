@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { computeShipping, FREE_SHIPPING_THRESHOLD, SHIPPING_FEE_COD, SHIPPING_FEE_PREPAID } from '@/lib/razorpay'
 
 // ── GET — fetch current user's cart ─────────────────────────────────────────
 export async function GET() {
@@ -37,15 +38,26 @@ export async function GET() {
         return sum + ((item.products as any)?.price ?? 0) * item.quantity
     }, 0) ?? 0
 
-    // FREE SHIPPING LOGIC: Free if subtotal >= 249, else ₹50
-    const shipping = subtotal >= 249 ? 0 : 50
+    // Shipping rules (Reveil, May 2026):
+    //   - Subtotal >= ₹250                   → Free
+    //   - Subtotal < ₹250 + Online payment   → ₹60
+    //   - Subtotal < ₹250 + Cash on delivery → ₹80
+    // On the cart page (before checkout) we show the cheaper "prepaid" rate
+    // as the default — the customer's actual payment method is locked in on
+    // the checkout page, where the total recomputes if they pick COD.
+    const shipping = computeShipping(subtotal, 'prepaid')
+    const shippingCod = computeShipping(subtotal, 'cod')
     const total = subtotal + shipping
 
     return NextResponse.json({
         items: data ?? [],
         subtotal,
         shipping,
+        shippingPrepaid: shipping,
+        shippingCod,
         total,
+        freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
+        shippingRates: { cod: SHIPPING_FEE_COD, prepaid: SHIPPING_FEE_PREPAID },
         itemCount: data?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
     })
 }

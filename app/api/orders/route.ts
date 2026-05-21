@@ -140,7 +140,10 @@ export async function POST(request: Request) {
         const product = products!.find(p => p.id === item.product_id)!
         return sum + product.price * item.quantity
     }, 0)
-    const shippingFee = computeShipping(subtotal)
+    // This route only creates COD orders (Razorpay goes through the verify
+    // endpoint), so hardcode 'cod' here — Reveil's policy: ₹80 shipping when
+    // subtotal < ₹250, free above.
+    const shippingFee = computeShipping(subtotal, 'cod')
     const total = subtotal + shippingFee
 
     if (total > COD_MAX_TOTAL_INR) {
@@ -203,6 +206,16 @@ export async function POST(request: Request) {
             },
             { status: 500 },
         )
+    }
+
+    // Persist the actual shipping fee on the order row. The create_cod_order
+    // RPC only stores the total — we set shipping_cost separately so the
+    // invoice (and any downstream report) shows the real ₹0 / ₹60 / ₹80 line.
+    if (shippingFee > 0) {
+        await admin
+            .from('orders')
+            .update({ shipping_cost: shippingFee })
+            .eq('id', orderId as string)
     }
 
     if (!buy_now) {

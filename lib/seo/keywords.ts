@@ -114,7 +114,7 @@ export const CATEGORY_KEYWORDS: Record<string, readonly string[]> = {
 
 // ── UNIVERSAL TAIL APPLIED TO EVERY PRODUCT PAGE ────────────────────────────
 export const PRODUCT_QUALIFIERS = [
-  'buy online India', 'cash on delivery', 'free shipping above 249',
+  'buy online India', 'cash on delivery', 'free shipping above 250',
   'long lasting', 'original product', 'authentic fragrance',
 ] as const
 

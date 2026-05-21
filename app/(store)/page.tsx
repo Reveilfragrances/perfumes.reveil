@@ -14,7 +14,7 @@ import { faqSchema } from '@/lib/seo/schema'
 export const metadata: Metadata = {
   title: "Reveil Fragrance — Buy Luxury Perfumes Online in India | Long Lasting Eau de Parfum",
   description:
-    "Buy luxury perfumes online in India at Reveil Fragrance. Long-lasting eau de parfum for men & women, authentic Arabian attars, premium oudh, and luxury home fragrances. Original imported & Indian fragrances. Cash on delivery. Free shipping above ₹249.",
+    "Buy luxury perfumes online in India at Reveil Fragrance. Long-lasting eau de parfum for men & women, authentic Arabian attars, premium oudh, and luxury home fragrances. Original imported & Indian fragrances. Cash on delivery. Free shipping above ₹250.",
   keywords: [
     ...BRAND_KEYWORDS,
     ...HIGH_INTENT_KEYWORDS,
@@ -135,7 +135,7 @@ export default async function HomePage() {
   const homepageFaqs = faqSchema([
     {
       q: 'Where can I buy luxury perfumes online in India?',
-      a: 'Reveil Fragrance offers a curated collection of luxury perfumes, Arabian attars, premium oudh, and home fragrances online across India with free shipping above ₹249 and cash on delivery available pan-India.',
+      a: 'Reveil Fragrance offers a curated collection of luxury perfumes, Arabian attars, premium oudh, and home fragrances online across India with free shipping above ₹250 and cash on delivery available pan-India.',
     },
     {
       q: 'Are Reveil perfumes long lasting?',
@@ -185,7 +185,7 @@ export default async function HomePage() {
             perfumes, long lasting eau de parfum for men and women, authentic Arabian attars,
             premium oudh, and luxury reed diffusers. Every fragrance is crafted for maximum
             longevity, strong projection, and signature character. Cash on delivery available.
-            Free shipping above ₹249. Pan-India delivery via Shiprocket.
+            Free shipping above ₹250. Pan-India delivery via Shiprocket.
           </p>
 
           <h2>Shop by Intent</h2>

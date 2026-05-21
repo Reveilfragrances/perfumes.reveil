@@ -24,21 +24,25 @@ export default function CancelOrderButton({
     if (isTerminal) return null
 
     async function cancel() {
-        if (!confirm('Cancel this order? This cannot be undone.')) return
+        if (!confirm('Cancel this order? This will also cancel the shipment in Shiprocket. This cannot be undone.')) return
         setLoading(true)
         try {
-            const res = await fetch(`/api/orders/${orderId}`, {
-                method: 'PATCH',
+            const res = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'cancelled' }),
             })
+            const data = await res.json().catch(() => ({}))
             if (!res.ok) {
-                const data = await res.json().catch(() => ({}))
                 throw new Error(data.error || 'Failed to cancel')
+            }
+            // Shiprocket couldn't cancel (already picked up, etc.) but local
+            // DB was cancelled. Show the admin so they can reconcile manually.
+            if (data.warning) {
+                alert(`Order cancelled locally, but Shiprocket warned: ${data.warning}`)
             }
             router.refresh()
         } catch (err: any) {
-            alert(err.message)
+            alert(err.message || 'Could not cancel order')
         } finally {
             setLoading(false)
         }

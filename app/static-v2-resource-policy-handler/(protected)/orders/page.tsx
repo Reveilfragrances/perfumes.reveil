@@ -5,6 +5,9 @@ import CancelOrderButton from '@/components/admin/CancelOrderButton'
 import { cn } from '@/lib/utils'
 import { Truck, ExternalLink, Printer, ShoppingBag } from 'lucide-react'
 import FulfillButton from '../../../../components/admin/FulfillButton'
+import AcceptOrderButton from '@/components/admin/AcceptOrderButton'
+import SyncStatusButton from '@/components/admin/SyncStatusButton'
+import OrdersAutoRefresh from '@/components/admin/OrdersAutoRefresh'
 import { getDisplayStatus } from '@/lib/utils/order-status'
 import PageHeader from '../_components/PageHeader'
 
@@ -37,6 +40,7 @@ export default async function AdminOrdersPage() {
                 title="Orders"
                 subtitle="Manage and track every customer order."
             >
+                <OrdersAutoRefresh intervalSeconds={30} />
                 <div className="bg-white px-5 py-2.5 rounded-full border border-gray-200 shadow-sm">
                     <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Orders: </span>
                     <span className="text-base font-extrabold text-black">{orders?.length ?? 0}</span>
@@ -138,15 +142,22 @@ export default async function AdminOrdersPage() {
                                         <OrderStatusBadge status={displayStatus} />
                                     </td>
 
-                                    {/* Shipping */}
+                                    {/* Shipping — two-step approval flow:
+                                        pending → [Accept]
+                                        confirmed → [Fulfill]
+                                        shipped/delivered → AWB + Label */}
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col gap-1.5">
                                             {order.shiprocket_order_id ? (
                                                 <>
                                                     {order.awb_code && (
-                                                        <Link href={`/track/${order.awb_code}`} target="_blank" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors truncate">
-                                                            <Truck className="w-3.5 h-3.5 shrink-0" /> {order.awb_code}
-                                                        </Link>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Link href={`/track/${order.awb_code}`} target="_blank" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors truncate flex-1 min-w-0">
+                                                                <Truck className="w-3.5 h-3.5 shrink-0" />
+                                                                <span className="truncate">{order.awb_code}</span>
+                                                            </Link>
+                                                            <SyncStatusButton orderId={order.id} awbCode={order.awb_code} />
+                                                        </div>
                                                     )}
                                                     {order.label_url && (
                                                         <a href={order.label_url} target="_blank" className="text-xs font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1.5 transition-colors">
@@ -157,6 +168,8 @@ export default async function AdminOrdersPage() {
                                                         <span className="text-xs text-gray-400 italic">In Shiprocket</span>
                                                     )}
                                                 </>
+                                            ) : String(order.status).toLowerCase() === 'pending' ? (
+                                                <AcceptOrderButton orderId={order.id} />
                                             ) : (
                                                 <FulfillButton orderId={order.id} isFulfilled={false} />
                                             )}

@@ -67,6 +67,16 @@ export async function finaliseRazorpayOrder(input: FinalizeInput): Promise<Final
   // RPC returns the inserted order id (uuid).
   const orderId = String(data)
 
+  // Mirror the snapshot's shipping_fee onto the orders row so the invoice and
+  // any reports show the real fee the customer paid. finalise_paid_order only
+  // copies the total — we set this column separately.
+  if (pending.shipping_fee && Number(pending.shipping_fee) > 0) {
+    await admin
+      .from('orders')
+      .update({ shipping_cost: Number(pending.shipping_fee) })
+      .eq('id', orderId)
+  }
+
   // Trigger confirmation email in the background
   triggerOrderConfirmationEmail(orderId).catch(err => {
     console.error('[finaliseRazorpayOrder] Email trigger failed:', err)

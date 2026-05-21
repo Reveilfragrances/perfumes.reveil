@@ -56,10 +56,29 @@ export function verifyRazorpayWebhookSignature(rawBody: string, signature: strin
     return safeEqualHex(expected, signature)
 }
 
-// Free delivery threshold (rupees). Orders >= this value ship free.
-export const FREE_SHIPPING_THRESHOLD = 249
-export const SHIPPING_FEE = 50
+// Free delivery threshold (rupees). Orders >= this value ship free regardless
+// of payment method. Below this threshold the shipping fee depends on whether
+// the customer pays online (cheaper) or by cash on delivery (more expensive
+// because of courier handling charges).
+export const FREE_SHIPPING_THRESHOLD = 250
+export const SHIPPING_FEE_COD = 80      // below threshold + COD
+export const SHIPPING_FEE_PREPAID = 60  // below threshold + online payment
 
-export function computeShipping(subtotal: number): number {
-    return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE
+export type PaymentMethod = 'cod' | 'razorpay' | 'prepaid' | string | null | undefined
+
+/**
+ * Compute the shipping fee for an order.
+ *
+ * Rules (set by Reveil, May 2026):
+ *   - Subtotal >= ₹250                   → Free shipping
+ *   - Subtotal < ₹250 and COD            → ₹80 shipping
+ *   - Subtotal < ₹250 and online payment → ₹60 shipping
+ *
+ * `paymentMethod` defaults to "prepaid" so legacy callers that haven't been
+ * updated still see the cheaper rate (matches what the cart shows pre-checkout
+ * when the customer hasn't yet picked a payment method).
+ */
+export function computeShipping(subtotal: number, paymentMethod: PaymentMethod = 'prepaid'): number {
+    if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0
+    return paymentMethod === 'cod' ? SHIPPING_FEE_COD : SHIPPING_FEE_PREPAID
 }

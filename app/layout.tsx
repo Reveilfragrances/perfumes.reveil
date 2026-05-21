@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s | Reveil Fragrance"
   },
   description:
-    "✨ Shop India's finest long-lasting perfumes from ₹499. Men's & women's eau de parfum, authentic Arabian attars, premium oudh. 100% original. Free shipping ₹249+. Cash on Delivery. Same-day dispatch.",
+    "✨ Shop India's finest long-lasting perfumes from ₹499. Men's & women's eau de parfum, authentic Arabian attars, premium oudh. 100% original. Free shipping ₹250+. Cash on Delivery. Same-day dispatch.",
   keywords: ALL_KEYWORDS as unknown as string[],
   authors: [{ name: `${BRAND_NAME} Studio` }],
   creator: BRAND_NAME,
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: "Reveil Fragrance — Buy Luxury Perfumes Online India",
     description:
-      "Long-lasting luxury perfumes, Arabian attars, and premium oudh. Best perfumes for men & women in India. Cash on delivery. Free shipping above ₹249.",
+      "Long-lasting luxury perfumes, Arabian attars, and premium oudh. Best perfumes for men & women in India. Cash on delivery. Free shipping above ₹250.",
     images: [
       {
         url: "/luxury_perfume_hero_png_1775752819988.png",

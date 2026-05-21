@@ -57,7 +57,7 @@ export default function FulfillButton({ orderId, isFulfilled }: FulfillButtonPro
             <button
                 onClick={handleFulfill}
                 disabled={status === 'loading' || status === 'success'}
-                title={error || 'Fulfill via Shiprocket'}
+                title={error || 'Push to Shiprocket and ship this order'}
                 className={cn(
                     "flex items-center justify-center gap-1.5 w-full px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider transition-all duration-300 whitespace-nowrap border",
                     status === 'idle' && "text-gray-700 bg-gray-50 border-gray-200 hover:text-white hover:bg-black hover:border-black cursor-pointer",
@@ -77,12 +77,12 @@ export default function FulfillButton({ orderId, isFulfilled }: FulfillButtonPro
                 )}
                 <span>
                     {status === 'loading'
-                        ? 'Sending'
+                        ? 'Shipping'
                         : status === 'success'
-                        ? 'Fulfilled'
+                        ? 'Shipped'
                         : status === 'error'
                         ? 'Retry'
-                        : 'Fulfill'}
+                        : 'Ship'}
                 </span>
             </button>
 

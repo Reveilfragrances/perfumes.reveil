@@ -36,8 +36,13 @@ export default function CartPage() {
                 return sum + ((item.products as any)?.price ?? 0) * item.quantity
             }, 0)
 
-            // FREE SHIPPING LOGIC: Free if subtotal >= 249, else ₹50
-            const shipping = subtotal >= 249 ? 0 : 50
+            // Shipping rules (Reveil, May 2026):
+            //   - Subtotal >= ₹250                  → Free
+            //   - Subtotal < ₹250 + Online payment  → ₹60
+            //   - Subtotal < ₹250 + COD             → ₹80
+            // Cart preview shows the cheaper online rate; final price is set
+            // on checkout once the customer picks a payment method.
+            const shipping = subtotal >= 250 ? 0 : 60
             const total = subtotal + shipping
 
             setCartItems(items)
@@ -158,18 +163,18 @@ export default function CartPage() {
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Truck size={isMobile ? 13 : 16} color="#d4af37" />
-                                <span style={{ fontSize: isMobile ? '10px' : '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: totals.subtotal >= 249 ? '#16a34a' : '#1a1a1a', lineHeight: 1.4 }}>
-                                    {totals.subtotal >= 249 ? 'Free delivery unlocked! 🎉' : `Add ₹${(249 - totals.subtotal).toLocaleString()} more for free shipping`}
+                                <span style={{ fontSize: isMobile ? '10px' : '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: totals.subtotal >= 250 ? '#16a34a' : '#1a1a1a', lineHeight: 1.4 }}>
+                                    {totals.subtotal >= 250 ? 'Free delivery unlocked! 🎉' : `Add ₹${(250 - totals.subtotal).toLocaleString()} more for free shipping`}
                                 </span>
                             </div>
                             {!isMobile && (
-                                <span style={{ fontSize: '10px', color: '#666', letterSpacing: '0.1em' }}>THRESHOLD: ₹249</span>
+                                <span style={{ fontSize: '10px', color: '#666', letterSpacing: '0.1em' }}>THRESHOLD: ₹250</span>
                             )}
                         </div>
                         <div style={{ width: '100%', height: '2px', background: 'rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}>
                             <motion.div
                                 initial={{ width: 0 }}
-                                animate={{ width: `${Math.min((totals.subtotal / 249) * 100, 100)}%` }}
+                                animate={{ width: `${Math.min((totals.subtotal / 250) * 100, 100)}%` }}
                                 transition={{ duration: 1, ease: "easeOut" }}
                                 style={{ height: '100%', background: '#d4af37', position: 'absolute', left: 0, top: 0 }}
                             />

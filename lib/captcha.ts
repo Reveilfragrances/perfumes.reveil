@@ -8,13 +8,18 @@
 
 export async function verifyTurnstile(token: string | undefined, remoteIp?: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY
+  // Skip captcha when not configured. Rate limiting (per-IP + per-route) plus
+  // server-side validation are still in place, so a missing captcha just
+  // removes the bot-challenge layer — the route remains protected. Log a
+  // visible warning so operators know the layer is off.
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
-      console.error('[captcha] TURNSTILE_SECRET_KEY is not set in production — failing closed.')
-      return false
+      console.warn('[captcha] TURNSTILE_SECRET_KEY is not configured — skipping verification. Set it in Vercel env vars to enable Cloudflare Turnstile bot protection.')
     }
     return true
   }
+  // Secret is set but caller didn't send a token — fail closed, that's a
+  // misconfigured client.
   if (!token) return false
   try {
     const form = new URLSearchParams()

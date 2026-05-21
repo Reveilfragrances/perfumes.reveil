@@ -15,7 +15,7 @@ const CATEGORY_META: Record<string, { title: string; description: string; h1: st
   PERFUMES: {
     title: 'Buy Luxury Perfumes Online India — Long Lasting Eau de Parfum | Reveil',
     description:
-      'Shop luxury perfumes online in India. Long lasting eau de parfum for men and women with strong projection. Original imported & Indian fragrances. Cash on delivery. Free shipping above ₹249.',
+      'Shop luxury perfumes online in India. Long lasting eau de parfum for men and women with strong projection. Original imported & Indian fragrances. Cash on delivery. Free shipping above ₹250.',
     h1: 'Luxury Perfumes Online India — Long Lasting Eau de Parfum',
     intro:
       'Discover Reveil&apos;s curated collection of long-lasting luxury perfumes for men and women. High-concentration eau de parfum with strong sillage, designed for office, date nights, and every memorable occasion. Original, authentic, pan-India delivery.',
@@ -73,7 +73,7 @@ const CATEGORY_META: Record<string, { title: string; description: string; h1: st
 const DEFAULT_META = {
   title: 'Shop All Fragrances Online India — Luxury Perfumes &amp; Attars | Reveil Fragrance',
   description:
-    'Shop original luxury perfumes, authentic attars, premium oudh, and home fragrances online in India. Best perfumes for men and women. Cash on delivery, free shipping above ₹249, pan-India delivery.',
+    'Shop original luxury perfumes, authentic attars, premium oudh, and home fragrances online in India. Best perfumes for men and women. Cash on delivery, free shipping above ₹250, pan-India delivery.',
   h1: 'Shop All Fragrances Online India — Luxury Perfumes &amp; Attars',
   intro:
     'Browse the complete Reveil Fragrance archive. Long-lasting eau de parfum for men and women, authentic Arabian attars, premium oudh, and luxury home diffusers — all original, all delivered across India.',
@@ -95,7 +95,7 @@ export async function generateMetadata({
     const cleanSearch = search.trim().slice(0, 60)
     return {
       title: `${cleanSearch} — Buy Online India | Reveil Fragrance`,
-      description: `Shop ${cleanSearch} and similar luxury perfumes online in India at Reveil Fragrance. Long lasting, original, free shipping above ₹249, cash on delivery available.`,
+      description: `Shop ${cleanSearch} and similar luxury perfumes online in India at Reveil Fragrance. Long lasting, original, free shipping above ₹250, cash on delivery available.`,
       keywords: keywordsForSearch(cleanSearch),
       alternates: { canonical: `${SITE_URL}/products?search=${encodeURIComponent(cleanSearch)}` },
       robots: { index: false, follow: true }, // don't index every search permutation
@@ -178,7 +178,7 @@ export default async function ShopPage({
           <li>Original products — every fragrance is factory sealed and authentic</li>
           <li>Long lasting projection — 8 to 12+ hours of sillage</li>
           <li>Pan-India delivery via Shiprocket — cash on delivery available</li>
-          <li>Free shipping on orders above ₹249</li>
+          <li>Free shipping on orders above ₹250</li>
           <li>Affordable luxury — premium fragrances at honest prices</li>
         </ul>
       </div>

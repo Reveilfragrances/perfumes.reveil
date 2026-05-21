@@ -45,13 +45,16 @@ export default function ContactPage() {
         body: JSON.stringify(formData)
       })
 
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
         setStatus('success')
         setFormData({ name: '', email: '', phone: '', message: '' })
       } else {
+        console.error('[contact form] submit failed:', data)
         setStatus('error')
       }
     } catch (err) {
+      console.error('[contact form] network error:', err)
       setStatus('error')
     } finally {
       setIsSubmitting(false)

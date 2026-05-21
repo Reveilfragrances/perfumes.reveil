@@ -22,7 +22,7 @@ export default function ShippingPage() {
             <div className="sr-only">
                 <h1>REVEIL Shipping and Delivery - Premium Perfume Logistics India</h1>
                 <h2>Fast Delivery for Luxury Fragrances, Attars, and Designer Scents</h2>
-                <p>Learn about REVEIL's shipping policies. We offer free shipping on orders above ₹400 and cash on delivery (COD) across India. Track your signature scents from our laboratory to your doorstep.</p>
+                <p>Learn about REVEIL's shipping policies. Free shipping on orders above ₹250. Below ₹250 — ₹60 online / ₹80 cash on delivery. Cash on delivery available pan-India. Track your signature scents from our laboratory to your doorstep.</p>
             </div>
 
             <AnimatedNavbar />
@@ -68,7 +68,7 @@ export default function ShippingPage() {
                     gap: isMobile ? '16px' : '20px'
                 }}>
                     {[
-                        { icon: Truck, title: 'Free Shipping', text: 'On orders above ₹400' },
+                        { icon: Truck, title: 'Free Shipping', text: 'On orders above ₹250' },
                         { icon: CreditCard, title: 'COD Available', text: 'Pay at your doorstep' },
                         { icon: Clock, title: 'Early Dispatch', text: '4-7 days processing' },
                         { icon: Box, title: 'Secure Track', text: 'SMS notifications' }
@@ -121,11 +121,19 @@ export default function ShippingPage() {
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             <li style={{ marginBottom: '15px', display: 'flex', gap: '10px' }}>
                                 <div style={{ color: '#d4af37' }}>—</div>
-                                <span>Orders above **₹400** are eligible for complementary shipping.</span>
+                                <span>Orders <strong>above ₹250</strong> ship <strong>free</strong> across India — no payment-method restriction.</span>
+                            </li>
+                            <li style={{ marginBottom: '15px', display: 'flex', gap: '10px' }}>
+                                <div style={{ color: '#d4af37' }}>—</div>
+                                <span>Orders <strong>under ₹250</strong> with <strong>online payment</strong> (UPI / card / net-banking): flat <strong>₹60</strong> shipping.</span>
+                            </li>
+                            <li style={{ marginBottom: '15px', display: 'flex', gap: '10px' }}>
+                                <div style={{ color: '#d4af37' }}>—</div>
+                                <span>Orders <strong>under ₹250</strong> with <strong>cash on delivery</strong>: flat <strong>₹80</strong> shipping (covers courier handling charges).</span>
                             </li>
                             <li style={{ display: 'flex', gap: '10px' }}>
                                 <div style={{ color: '#d4af37' }}>—</div>
-                                <span>Once shipped, tracking details are sent directly to your provided mobile number via **SMS**.</span>
+                                <span>Once shipped, tracking details are sent to your registered email and shown on the <strong>My Orders</strong> page.</span>
                             </li>
                         </ul>
                     </div>

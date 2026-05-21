@@ -108,7 +108,9 @@ export async function POST(request: Request) {
             subtotal += item.price * item.quantity
         }
 
-        const shippingFee = computeShipping(subtotal)
+        // Razorpay path is online payment ('prepaid' / 'razorpay'). Below
+        // ₹250 threshold customers pay ₹60 shipping — the cheaper rate.
+        const shippingFee = computeShipping(subtotal, 'razorpay')
         const total = subtotal + shippingFee
 
         const razorpay = getRazorpay()

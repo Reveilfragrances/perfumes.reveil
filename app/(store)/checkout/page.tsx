@@ -40,8 +40,13 @@ declare global {
     }
 }
 
-const FREE_THRESHOLD = 249
-const SHIPPING_FEE = 50
+// Shipping rules (Reveil, May 2026):
+//   - Subtotal >= ₹250                   → Free
+//   - Subtotal < ₹250 + Online (Razorpay) → ₹60
+//   - Subtotal < ₹250 + Cash on Delivery  → ₹80
+const FREE_THRESHOLD = 250
+const SHIPPING_FEE_COD = 80
+const SHIPPING_FEE_PREPAID = 60
 
 export default function CheckoutPage() {
     return (
@@ -143,7 +148,11 @@ function CheckoutInner() {
     }, [isBuyNow, buyNowProductId, buyNowQty])
 
     const subtotal = items.reduce((sum, item) => sum + (item.products?.price ?? 0) * item.quantity, 0)
-    const shipping = subtotal >= FREE_THRESHOLD ? 0 : SHIPPING_FEE
+    // Shipping depends on the customer's selected payment method below the
+    // ₹250 threshold — COD is ₹80, online is ₹60.
+    const shipping = subtotal >= FREE_THRESHOLD
+        ? 0
+        : paymentMethod === 'cod' ? SHIPPING_FEE_COD : SHIPPING_FEE_PREPAID
     const total = subtotal + shipping
     const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || null
 
@@ -460,14 +469,27 @@ function CheckoutInner() {
                                     <span>₹{subtotal.toLocaleString()}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                    <span style={{ color: 'rgba(0,0,0,0.5)' }}>Shipping</span>
+                                    <span style={{ color: 'rgba(0,0,0,0.5)' }}>
+                                        Shipping
+                                        {shipping > 0 && (
+                                            <span style={{ color: 'rgba(0,0,0,0.4)', marginLeft: '6px', fontSize: '10px' }}>
+                                                ({paymentMethod === 'cod' ? 'COD' : 'Online'})
+                                            </span>
+                                        )}
+                                    </span>
                                     <span style={{ color: shipping === 0 ? '#16a34a' : '#1a1a1a' }}>
                                         {shipping === 0 ? 'FREE' : `₹${shipping}`}
                                     </span>
                                 </div>
-                                {shipping === 0 && (
+                                {shipping === 0 ? (
                                     <div style={{ fontSize: '10px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <Check size={12} /> Free delivery unlocked (orders over ₹{FREE_THRESHOLD})
+                                    </div>
+                                ) : (
+                                    <div style={{ fontSize: '10px', color: 'rgba(0,0,0,0.5)', lineHeight: 1.5 }}>
+                                        {paymentMethod === 'cod'
+                                            ? `COD shipping is ₹${SHIPPING_FEE_COD}. Pay online to save ₹${SHIPPING_FEE_COD - SHIPPING_FEE_PREPAID} — or spend ₹${(FREE_THRESHOLD - subtotal).toLocaleString()} more to unlock free delivery.`
+                                            : `Add ₹${(FREE_THRESHOLD - subtotal).toLocaleString()} more to unlock free delivery.`}
                                     </div>
                                 )}
                                 <div style={{ height: '1px', background: 'rgba(0,0,0,0.08)', margin: '8px 0' }} />

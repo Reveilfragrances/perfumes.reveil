@@ -564,6 +564,94 @@ export async function triggerOrderConfirmationEmail(orderId: string) {
     }
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// CONTACT INQUIRY → ADMIN EMAIL
+// Fired whenever a customer submits the public contact form. Goes to
+// reveilfragrances@gmail.com with the customer's contact details so the
+// admin can reply directly (we set reply-to to their email).
+// ────────────────────────────────────────────────────────────────────────────
+export async function sendContactInquiryEmail(input: {
+    name: string
+    email: string
+    phone: string | null
+    message: string
+}) {
+    const adminEmail = process.env.CONTACT_ADMIN_EMAIL || 'reveilfragrances@gmail.com'
+
+    if (!resend) {
+        console.log('--- MOCK CONTACT EMAIL ---')
+        console.log(`From: ${input.name} <${input.email}> ${input.phone || ''}`)
+        console.log(`To: ${adminEmail}`)
+        console.log(`Message: ${input.message.slice(0, 200)}`)
+        return { success: true, mocked: true }
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: FROM_ADDRESS,
+            to: adminEmail,
+            replyTo: input.email, // Hitting Reply in Gmail emails the customer directly
+            subject: `📩 New contact inquiry from ${input.name}`,
+            html: `
+                <div style="background:#050505; color:#fff; font-family:'Baskerville','Georgia',serif; padding:36px; max-width:620px; margin:0 auto; border:1px solid #1a1a1a;">
+                    <div style="text-align:center; margin-bottom:32px;">
+                        <h1 style="color:#d4af37; font-weight:300; letter-spacing:0.3em; text-transform:uppercase; margin:0; font-size:26px;">REVEIL</h1>
+                        <p style="color:#666; font-size:10px; letter-spacing:0.45em; margin-top:10px; text-transform:uppercase;">Customer Inquiry</p>
+                    </div>
+
+                    <div style="text-align:center; margin-bottom:32px;">
+                        <h2 style="font-weight:300; font-size:22px; color:#fff; text-transform:uppercase; letter-spacing:0.15em; margin:0;">New Inquiry Received</h2>
+                        <div style="width:36px; height:1px; background:#d4af37; margin:14px auto;"></div>
+                        <p style="color:#888; font-size:13px; margin:14px 24px 0;">A customer just reached out through the contact form on reveilfragrance.in.</p>
+                    </div>
+
+                    <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:24px; margin-bottom:24px;">
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <tr><td style="padding:8px 0; color:#666; width:90px; text-transform:uppercase; letter-spacing:0.18em; font-size:10px;">Name</td><td style="padding:8px 0; color:#fff;">${escapeHtml(input.name)}</td></tr>
+                            <tr><td style="padding:8px 0; color:#666; text-transform:uppercase; letter-spacing:0.18em; font-size:10px;">Email</td><td style="padding:8px 0;"><a href="mailto:${escapeHtml(input.email)}" style="color:#d4af37; text-decoration:none;">${escapeHtml(input.email)}</a></td></tr>
+                            ${input.phone ? `<tr><td style="padding:8px 0; color:#666; text-transform:uppercase; letter-spacing:0.18em; font-size:10px;">Phone</td><td style="padding:8px 0;"><a href="tel:${escapeHtml(input.phone)}" style="color:#d4af37; text-decoration:none;">${escapeHtml(input.phone)}</a></td></tr>` : ''}
+                            <tr><td style="padding:8px 0; color:#666; text-transform:uppercase; letter-spacing:0.18em; font-size:10px;">When</td><td style="padding:8px 0; color:#fff;">${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td></tr>
+                        </table>
+                    </div>
+
+                    <div style="background:#0a0a0a; border:1px solid #1a1a1a; border-left:3px solid #d4af37; padding:20px; margin-bottom:24px;">
+                        <p style="color:#d4af37; font-size:10px; letter-spacing:0.25em; text-transform:uppercase; margin:0 0 12px; font-weight:700;">Message</p>
+                        <p style="color:#e4e4e4; font-size:14px; line-height:1.7; margin:0; white-space:pre-wrap;">${escapeHtml(input.message)}</p>
+                    </div>
+
+                    <div style="text-align:center; margin-top:28px;">
+                        <a href="mailto:${escapeHtml(input.email)}?subject=Re:%20Your%20inquiry%20at%20Reveil%20Fragrance" style="display:inline-block; background:#d4af37; color:#050505; text-decoration:none; padding:13px 32px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.25em; border-radius:2px;">Reply to ${escapeHtml(input.name.split(' ')[0])} →</a>
+                    </div>
+
+                    <div style="text-align:center; border-top:1px solid #1a1a1a; padding-top:24px; margin-top:32px; color:#555; font-size:10px;">
+                        Just hit reply on this email — it goes straight to the customer.<br>
+                        <span style="letter-spacing:0.3em; text-transform:uppercase; color:#666;">www.reveilfragrance.in</span>
+                    </div>
+                </div>
+            `
+        })
+
+        if (error) {
+            console.error('[sendContactInquiryEmail] Resend error:', error)
+            return { success: false, error }
+        }
+        return { success: true, data }
+    } catch (err) {
+        console.error('[sendContactInquiryEmail] Dispatch error:', err)
+        return { success: false, error: err }
+    }
+}
+
+// Minimal HTML-escape helper for fields that go into the inquiry email.
+function escapeHtml(s: string): string {
+    return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+}
+
 export async function sendAdminCredentialsEmail(recipientEmail: string) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) return { success: true, mocked: true };

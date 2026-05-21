@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     const title = `${product.name} — Buy Online India | ${product.category || 'Luxury Perfume'} | Reveil`
     const description = product.description
-        ? `${product.description.slice(0, 140)} — Buy ${product.name} online in India at ₹${product.price}. Long lasting, original, free shipping above ₹249.`
+        ? `${product.description.slice(0, 140)} — Buy ${product.name} online in India at ₹${product.price}. Long lasting, original, free shipping above ₹250.`
         : `Buy ${product.name} online in India at Reveil Fragrance. Long lasting ${product.category?.toLowerCase() || 'perfume'} — ₹${product.price}. Original product, cash on delivery, pan-India delivery.`
     const image = product.images?.[0] || '/og-main.jpg'
     const url = `${SITE_URL}/products/${product.slug}`
@@ -156,7 +156,7 @@ export default async function ProductExperiencePage({ params }: Props) {
                 '@type': 'OfferShippingDetails',
                 shippingRate: {
                     '@type': 'MonetaryAmount',
-                    value: product.price >= 249 ? 0 : 50,
+                    value: product.price >= 250 ? 0 : 60,
                     currency: 'INR',
                 },
                 shippingDestination: {
@@ -214,7 +214,7 @@ export default async function ProductExperiencePage({ params }: Props) {
                 <h1>{`Buy ${product.name} Online India — ${product.category || 'Luxury Perfume'} | ₹${product.price} | Reveil Fragrance`}</h1>
                 <h2>{`${product.name} Price India — Long Lasting, Original, Cash on Delivery`}</h2>
                 <p>
-                    {`${product.name} is a long-lasting ${product.category?.toLowerCase() || 'fragrance'} from the Reveil collection, available online in India at ₹${product.price}. Free shipping above ₹249. Cash on delivery available pan-India. 100% original product.`}
+                    {`${product.name} is a long-lasting ${product.category?.toLowerCase() || 'fragrance'} from the Reveil collection, available online in India at ₹${product.price}. Free shipping above ₹250. Cash on delivery available pan-India. 100% original product.`}
                 </p>
             </div>
             <ProductContent product={product} initialReviews={reviews || []} relatedProducts={related} />

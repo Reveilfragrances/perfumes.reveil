@@ -190,3 +190,53 @@ export async function shiprocketFetch(endpoint: string, options: RequestInit = {
 
     return data;
 }
+
+/**
+ * Cancel an order in Shiprocket. Two-step when there's an AWB:
+ *   1. Cancel the shipment (frees the AWB)
+ *   2. Cancel the order itself
+ * If the order was never assigned an AWB, only step 2 runs.
+ *
+ * Returns { ok: true } on success, { ok: false, reason } on failure.
+ * Best-effort — caller should still cancel locally even if Shiprocket fails.
+ */
+export async function cancelShiprocketOrder(opts: {
+    shiprocketOrderId?: string | number | null
+    awbCode?: string | null
+}): Promise<{ ok: boolean; reason?: string; details?: any }> {
+    if (!opts.shiprocketOrderId && !opts.awbCode) {
+        return { ok: false, reason: 'No Shiprocket identifiers on this order' }
+    }
+
+    try {
+        // Step 1 — cancel the shipment (only if AWB exists). Freeing the AWB
+        // first prevents a "shipment already manifested" error on the order
+        // cancel call.
+        if (opts.awbCode) {
+            const shipmentCancel = await shiprocketFetch('/orders/cancel/shipment/awbs', {
+                method: 'POST',
+                body: JSON.stringify({ awbs: [String(opts.awbCode)] }),
+            })
+            // Shiprocket returns 200 even when an AWB can't be cancelled
+            // (e.g. already picked up). We continue regardless — the order
+            // cancel below is the real lever.
+            console.log('[cancelShiprocketOrder] AWB cancel response:', shipmentCancel)
+        }
+
+        // Step 2 — cancel the order. This is the canonical cancel.
+        if (opts.shiprocketOrderId) {
+            const data = await shiprocketFetch('/orders/cancel', {
+                method: 'POST',
+                body: JSON.stringify({ ids: [Number(opts.shiprocketOrderId)] }),
+            })
+            // Shiprocket returns { status: 200, message: "..." } on success
+            // and HTTP 400 / 422 with an error body on failure.
+            if (data?.status_code && Number(data.status_code) >= 400) {
+                return { ok: false, reason: data?.message || 'Shiprocket order cancel failed', details: data }
+            }
+        }
+        return { ok: true }
+    } catch (err: any) {
+        return { ok: false, reason: err?.message || 'Network error cancelling order' }
+    }
+}
