@@ -30,7 +30,11 @@ export async function POST(request: Request) {
   }
 
   const eventType = String(event?.event || '')
-  if (eventType !== 'payment.captured' && eventType !== 'payment.authorized') {
+  // We only finalize on `payment.captured` — `authorized` means funds are
+  // held but not yet in our account, so creating an order then would be
+  // premature. Razorpay account default is auto-capture, so captured fires
+  // immediately after the customer's checkout completes.
+  if (eventType !== 'payment.captured') {
     // Acknowledge — Razorpay treats any non-2xx as a retry.
     return NextResponse.json({ ok: true, ignored: eventType })
   }

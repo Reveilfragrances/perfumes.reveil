@@ -46,8 +46,17 @@ export async function POST(request: Request) {
         if (payment.order_id !== razorpay_order_id) {
             return NextResponse.json({ error: 'Payment does not belong to this order' }, { status: 400 })
         }
-        if (payment.status !== 'captured' && payment.status !== 'authorized') {
-            return NextResponse.json({ error: `Payment is in status: ${payment.status}` }, { status: 400 })
+        // Only accept fully-captured payments. `authorized` means Razorpay has
+        // a hold on the customer's funds but they're NOT in our merchant
+        // account yet — if our merchant ever flips on manual-capture, we'd
+        // be creating orders for money we can't actually withdraw. Auto-
+        // capture is on by default, so for the vast majority of payments
+        // this is a no-op; we just refuse the edge case.
+        if (payment.status !== 'captured') {
+            return NextResponse.json(
+                { error: `Payment is in status: ${payment.status}. Please wait for capture or contact support.` },
+                { status: 400 },
+            )
         }
 
         // 3. Confirm the Razorpay order's notes link to this user — protects
