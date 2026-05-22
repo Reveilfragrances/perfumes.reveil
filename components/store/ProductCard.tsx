@@ -289,7 +289,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 {/* Subtle Grain Overlay for Texture */}
                 <div style={{
                     position: 'absolute', inset: 0, zIndex: 1,
-                    background: 'url("https://grainy-gradients.vercel.app/noise.svg")',
+                    background: 'url("/noise.svg")',
                     opacity: 0.05, pointerEvents: 'none'
                 }} />
 
