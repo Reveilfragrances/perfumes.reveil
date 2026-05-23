@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Heart, Loader2, ShoppingCart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -206,13 +207,13 @@ export default function ProductCard({ product }: { product: Product }) {
                     style={{ position: 'absolute', inset: 0, zIndex: 0 }}
                 >
                     {mainImage && !imgError ? (
-                        <img
+                        <Image
                             src={mainImage}
                             alt={product.name}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             onError={() => setImgError(true)}
-                            style={{
-                                width: '100%', height: '100%', objectFit: 'cover'
-                            }}
+                            style={{ objectFit: 'cover' }}
                         />
                     ) : (
                         <div style={{

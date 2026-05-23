@@ -1,5 +1,6 @@
 'use client'
 import useEmblaCarousel from 'embla-carousel-react'
+import Image from 'next/image'
 import { useEffect, useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -196,11 +197,13 @@ function SlideMedia({ slide, isActive, emblaApi, isMobile }: { slide: Slide, isA
             >
                 {/* Visual Placeholder (Poster) - Always there for instant reveal */}
                 {slide.image_url && (
-                    <img
+                    <Image
                         src={slide.image_url}
-                        alt=""
+                        alt={slide.title || ''}
+                        fill
+                        priority={isActive}
+                        sizes="100vw"
                         style={{
-                            position: 'absolute', inset: 0, width: '100%', height: '100%',
                             objectFit: 'cover',
                             objectPosition: isMobile ? '18% center' : 'center',
                             filter: 'brightness(0.45) contrast(1.08) saturate(0.88)',
