@@ -15,6 +15,7 @@ export function AnimatedNavbar() {
     const isDarkPage = pathname === '/orders'
     const textColor = '#d4af37'
     const [isAccountHovered, setIsAccountHovered] = useState(false)
+    const [isShopHovered, setIsShopHovered] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isCartOpen, setIsCartOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
@@ -340,7 +341,12 @@ export function AnimatedNavbar() {
                         }}>
 
 
-                            <motion.div variants={itemVariants}>
+                            <motion.div
+                                variants={itemVariants}
+                                onMouseEnter={() => setIsShopHovered(true)}
+                                onMouseLeave={() => setIsShopHovered(false)}
+                                style={{ position: 'relative', padding: '10px 0' }}
+                            >
                                 <Link href="/products" style={{ textDecoration: 'none' }}>
                                     <motion.span
                                         whileHover="hover"
@@ -366,6 +372,88 @@ export function AnimatedNavbar() {
                                         />
                                     </motion.span>
                                 </Link>
+
+                                <AnimatePresence>
+                                    {isShopHovered && (
+                                        <motion.div
+                                            variants={dropdownVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="exit"
+                                            style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                left: '-20px',
+                                                background: 'rgba(10, 10, 10, 0.85)',
+                                                backdropFilter: 'blur(12px)',
+                                                WebkitBackdropFilter: 'blur(12px)',
+                                                border: '1px solid rgba(212,175,55,0.2)',
+                                                padding: '12px 0',
+                                                marginTop: '4px',
+                                                minWidth: '220px',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <Link href="/products" style={{
+                                                    padding: '10px 24px',
+                                                    color: textColor,
+                                                    textDecoration: 'none',
+                                                    fontSize: '11px',
+                                                    letterSpacing: '0.25em',
+                                                    fontFamily: 'var(--font-baskerville)',
+                                                    textTransform: 'uppercase',
+                                                    fontWeight: 600,
+                                                    transition: 'all 0.3s',
+                                                    display: 'block'
+                                                }}
+                                                    onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
+                                                    onMouseOut={(e) => e.currentTarget.style.color = textColor}
+                                                >
+                                                    All Products
+                                                </Link>
+
+                                                {categories.length > 0 && (
+                                                    <div style={{ height: '1px', background: 'rgba(212,175,55,0.15)', margin: '4px 24px' }} />
+                                                )}
+
+                                                {categories.map((cat) => (
+                                                    <Link
+                                                        key={cat.id}
+                                                        href={`/products?category=${cat.slug}`}
+                                                        style={{
+                                                            padding: '10px 24px',
+                                                            color: '#fff',
+                                                            textDecoration: 'none',
+                                                            fontSize: '11px',
+                                                            letterSpacing: '0.2em',
+                                                            fontFamily: 'var(--font-baskerville)',
+                                                            textTransform: 'uppercase',
+                                                            transition: 'all 0.3s',
+                                                            display: 'block'
+                                                        }}
+                                                        onMouseOver={(e) => e.currentTarget.style.color = textColor}
+                                                        onMouseOut={(e) => e.currentTarget.style.color = '#fff'}
+                                                    >
+                                                        {cat.name}
+                                                    </Link>
+                                                ))}
+
+                                                {categories.length === 0 && (
+                                                    <span style={{
+                                                        padding: '10px 24px',
+                                                        fontSize: '10px',
+                                                        color: 'rgba(255,255,255,0.4)',
+                                                        letterSpacing: '0.2em',
+                                                        textTransform: 'uppercase'
+                                                    }}>
+                                                        Loading…
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
 
                             <motion.div variants={itemVariants}>
