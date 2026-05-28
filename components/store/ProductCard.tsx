@@ -213,7 +213,7 @@ export default function ProductCard({ product }: { product: Product }) {
                             fill
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             onError={() => setImgError(true)}
-                            style={{ objectFit: 'cover' }}
+                            style={{ objectFit: 'contain', padding: isMobile ? '8px' : '12px' }}
                         />
                     ) : (
                         <div style={{

@@ -136,7 +136,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <link rel="canonical" href={SITE_URL} />
         <meta name="theme-color" content="#d4af37" />
         <meta name="format-detection" content="telephone=no" />
         {/* Explicit favicon links — Next.js auto-emits from metadata.icons,

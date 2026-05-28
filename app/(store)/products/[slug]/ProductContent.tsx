@@ -200,7 +200,7 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.4 }}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', position: 'absolute', inset: 0 }}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', padding: isMobile ? '16px' : '24px', position: 'absolute', inset: 0 }}
                                 alt={product.name}
                             />
                         </AnimatePresence>

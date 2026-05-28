@@ -21,17 +21,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         .eq('slug', slug)
         .single()
 
-    if (!product) return { title: 'Product Not Found | Reveil Fragrance' }
+    if (!product) {
+        return {
+            title: { absolute: 'Product Not Found | Reveil Fragrance' },
+            robots: { index: false, follow: false },
+        }
+    }
 
-    const title = `${product.name} — Buy Online India | ${product.category || 'Luxury Perfume'} | Reveil`
+    const title = `${product.name} — Buy Online India | ${product.category || 'Luxury Perfume'} | Reveil Fragrance`
     const description = product.description
         ? `${product.description.slice(0, 140)} — Buy ${product.name} online in India at ₹${product.price}. Long lasting, original, free shipping above ₹250.`
         : `Buy ${product.name} online in India at Reveil Fragrance. Long lasting ${product.category?.toLowerCase() || 'perfume'} — ₹${product.price}. Original product, cash on delivery, pan-India delivery.`
-    const image = product.images?.[0] || '/og-main.jpg'
+
+    const rawImage = product.images?.[0] || '/luxury_perfume_hero_png_1775752819988.png'
+    const image = /^https?:\/\//i.test(rawImage) ? rawImage : `${SITE_URL}${rawImage.startsWith('/') ? '' : '/'}${rawImage}`
     const url = `${SITE_URL}/products/${product.slug}`
 
     return {
-        title,
+        title: { absolute: title },
         description,
         keywords: keywordsForProduct(product.name, product.category),
         openGraph: {
@@ -41,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             url,
             siteName: 'Reveil Fragrance',
             locale: 'en_IN',
-            images: [{ url: image, width: 800, height: 800, alt: product.name }],
+            images: [{ url: image, width: 1200, height: 1200, alt: product.name }],
         },
         twitter: {
             card: 'summary_large_image',
@@ -50,6 +57,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             images: [image],
         },
         alternates: { canonical: url },
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+        },
         other: {
             'product:price:amount': String(product.price),
             'product:price:currency': 'INR',

@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence, Variants } from 'framer-motion'
 import Link from 'next/link'
-import { ShoppingBag, User, Menu, X, Heart, Loader2, Trash2 } from 'lucide-react'
+import { ShoppingBag, User, Menu, X, Heart, Loader2, Trash2, ChevronDown } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -24,6 +24,8 @@ export function AnimatedNavbar() {
     const [cartItems, setCartItems] = useState<any[]>([])
     const [cartTotals, setCartTotals] = useState({ subtotal: 0, total: 0 })
     const [isCartLoading, setIsCartLoading] = useState(false)
+    const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([])
+    const [isShopOpen, setIsShopOpen] = useState(false)
     const router = useRouter()
     const lenis = useLenis()
     const isFetchingRef = useRef(false)
@@ -171,6 +173,24 @@ export function AnimatedNavbar() {
             fetchCart(true)
         }
     }, [isCartOpen])
+
+    // Fetch categories (dynamic — reflects whatever admin has configured)
+    useEffect(() => {
+        let cancelled = false
+        fetch('/api/categories')
+            .then(r => r.ok ? r.json() : [])
+            .then((data) => {
+                if (cancelled || !Array.isArray(data)) return
+                setCategories(data.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug })))
+            })
+            .catch(() => { })
+        return () => { cancelled = true }
+    }, [])
+
+    // Collapse Shop dropdown when menu closes
+    useEffect(() => {
+        if (!isMobileMenuOpen) setIsShopOpen(false)
+    }, [isMobileMenuOpen])
 
 
     useEffect(() => {
@@ -716,7 +736,7 @@ export function AnimatedNavbar() {
                             </motion.div>
 
                             {[
-                                { name: 'Shop', href: '/products', always: true },
+                                { name: 'Shop', href: '/products', always: true, hasDropdown: true },
                                 { name: 'Orders', href: '/orders', always: true },
                                 { name: 'Wishlist', href: '/wishlist', always: true },
                                 { name: 'My Addresses', href: '/address-book', loggedIn: true },
@@ -736,27 +756,125 @@ export function AnimatedNavbar() {
                                         ease: [0.16, 1, 0.3, 1]
                                     }}
                                 >
-                                    <Link
-                                        href={link.href}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        style={{
-                                            fontSize: 'clamp(20px, 6.5vw, 28px)',
-                                            fontFamily: 'var(--font-baskerville)',
-                                            color: '#1a1a1a',
-                                            textDecoration: 'none',
-                                            display: 'block',
-                                            letterSpacing: '0.01em',
-                                            fontWeight: 500,
-                                            lineHeight: 1
-                                        }}
-                                    >
-                                        <motion.span
-                                            whileTap={{ x: 20, color: '#d4af37' }}
-                                            style={{ display: 'inline-block' }}
+                                    {link.hasDropdown ? (
+                                        <div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsShopOpen(v => !v)}
+                                                aria-expanded={isShopOpen}
+                                                style={{
+                                                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                                                    fontSize: 'clamp(20px, 6.5vw, 28px)',
+                                                    fontFamily: 'var(--font-baskerville)',
+                                                    color: '#1a1a1a',
+                                                    letterSpacing: '0.01em',
+                                                    fontWeight: 500,
+                                                    lineHeight: 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '12px',
+                                                    width: '100%',
+                                                    textAlign: 'left'
+                                                }}
+                                            >
+                                                <span>{link.name}</span>
+                                                <motion.span
+                                                    animate={{ rotate: isShopOpen ? 180 : 0 }}
+                                                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                                    style={{ display: 'inline-flex', color: '#d4af37' }}
+                                                >
+                                                    <ChevronDown size={22} strokeWidth={1.5} />
+                                                </motion.span>
+                                            </button>
+                                            <AnimatePresence initial={false}>
+                                                {isShopOpen && (
+                                                    <motion.div
+                                                        key="shop-dropdown"
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                                                        style={{ overflow: 'hidden' }}
+                                                    >
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '14px',
+                                                            paddingTop: '18px',
+                                                            paddingLeft: '14px',
+                                                            borderLeft: '1px solid rgba(212,175,55,0.35)',
+                                                            marginLeft: '4px'
+                                                        }}>
+                                                            <Link
+                                                                href="/products"
+                                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                                style={{
+                                                                    fontSize: '15px',
+                                                                    fontFamily: 'var(--font-baskerville)',
+                                                                    color: '#d4af37',
+                                                                    textDecoration: 'none',
+                                                                    letterSpacing: '0.18em',
+                                                                    textTransform: 'uppercase',
+                                                                    fontWeight: 500
+                                                                }}
+                                                            >
+                                                                All Products
+                                                            </Link>
+                                                            {categories.map((cat) => (
+                                                                <Link
+                                                                    key={cat.id}
+                                                                    href={`/products?category=${cat.slug}`}
+                                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                                    style={{
+                                                                        fontSize: '17px',
+                                                                        fontFamily: 'var(--font-baskerville)',
+                                                                        color: '#1a1a1a',
+                                                                        textDecoration: 'none',
+                                                                        letterSpacing: '0.02em',
+                                                                        fontWeight: 400
+                                                                    }}
+                                                                >
+                                                                    {cat.name}
+                                                                </Link>
+                                                            ))}
+                                                            {categories.length === 0 && (
+                                                                <span style={{
+                                                                    fontSize: '12px',
+                                                                    color: 'rgba(0,0,0,0.4)',
+                                                                    letterSpacing: '0.15em',
+                                                                    textTransform: 'uppercase'
+                                                                }}>
+                                                                    Loading…
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            href={link.href}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            style={{
+                                                fontSize: 'clamp(20px, 6.5vw, 28px)',
+                                                fontFamily: 'var(--font-baskerville)',
+                                                color: '#1a1a1a',
+                                                textDecoration: 'none',
+                                                display: 'block',
+                                                letterSpacing: '0.01em',
+                                                fontWeight: 500,
+                                                lineHeight: 1
+                                            }}
                                         >
-                                            {link.name}
-                                        </motion.span>
-                                    </Link>
+                                            <motion.span
+                                                whileTap={{ x: 20, color: '#d4af37' }}
+                                                style={{ display: 'inline-block' }}
+                                            >
+                                                {link.name}
+                                            </motion.span>
+                                        </Link>
+                                    )}
                                 </motion.div>
                             ))}
                             {user && (
