@@ -69,7 +69,18 @@ export default function HeroCarousel({ slides }: { slides: Slide[] }) {
     if (slides.length === 0) return null
 
     return (
-        <div style={{ position: 'relative', overflow: 'hidden' }} ref={emblaRef}>
+        <div
+            ref={emblaRef}
+            style={{
+                position: 'relative',
+                overflow: 'hidden',
+                // Push the carousel below the floating navbar capsule on mobile
+                // so the logo/menu chip no longer overlaps the banner image.
+                // Desktop nav floats over the full-bleed hero as designed.
+                paddingTop: isMobile ? '78px' : 0,
+                background: '#f8f7f2',
+            }}
+        >
             <div style={{ display: 'flex' }}>
                 {slides.map((slide, i) => (
                     <div key={slide.id} style={{ flex: '0 0 100%', minWidth: 0, position: 'relative' }}>

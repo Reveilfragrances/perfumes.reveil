@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 
 type Category = { id: string; name: string; slug: string; image_url?: string | null }
 
@@ -125,34 +126,46 @@ function pickIcon(category: { name: string; slug: string }): React.ReactNode {
 // ─── Section ────────────────────────────────────────────────────────────────
 
 export default function CategoryStrip({ categories }: { categories: Category[] }) {
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 640)
+        check()
+        window.addEventListener('resize', check)
+        return () => window.removeEventListener('resize', check)
+    }, [])
+
     if (!categories || categories.length === 0) return null
 
     return (
         <section style={{
             background: '#f8f7f2',
-            padding: 'clamp(48px, 7vw, 88px) 0 clamp(40px, 6vw, 72px)',
+            padding: isMobile ? '36px 0 28px' : 'clamp(48px, 7vw, 88px) 0 clamp(40px, 6vw, 72px)',
             position: 'relative',
             borderTop: '1px solid rgba(212,175,55,0.18)'
         }}>
-            <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 clamp(20px, 4vw, 60px)' }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 clamp(20px, 4vw, 60px)' }}>
                 <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: '16px', marginBottom: 'clamp(28px, 4vw, 48px)'
+                    gap: isMobile ? '10px' : '16px',
+                    marginBottom: isMobile ? '20px' : 'clamp(28px, 4vw, 48px)'
                 }}>
-                    <div style={{ width: '40px', height: '1px', background: 'rgba(212,175,55,0.4)' }} />
+                    <div style={{ width: isMobile ? '24px' : '40px', height: '1px', background: 'rgba(212,175,55,0.4)' }} />
                     <span style={{
-                        fontSize: '11px', letterSpacing: '0.4em',
+                        fontSize: isMobile ? '10px' : '11px',
+                        letterSpacing: isMobile ? '0.3em' : '0.4em',
                         color: GOLD, textTransform: 'uppercase', fontWeight: 500
                     }}>
                         Shop by Category
                     </span>
-                    <div style={{ width: '40px', height: '1px', background: 'rgba(212,175,55,0.4)' }} />
+                    <div style={{ width: isMobile ? '24px' : '40px', height: '1px', background: 'rgba(212,175,55,0.4)' }} />
                 </div>
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                    gap: 'clamp(14px, 1.8vw, 22px)',
+                    // Force 2-up on phones; auto-fit fluid grid on tablet/desktop.
+                    gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gap: isMobile ? '10px' : 'clamp(14px, 1.8vw, 22px)',
                     maxWidth: '1200px',
                     margin: '0 auto'
                 }}>
@@ -161,6 +174,7 @@ export default function CategoryStrip({ categories }: { categories: Category[] }
                         label="All Fragrances"
                         hint="View entire archive"
                         icon={Icons.all}
+                        isMobile={isMobile}
                     />
                     {categories.map((cat) => (
                         <CategoryCard
@@ -169,6 +183,7 @@ export default function CategoryStrip({ categories }: { categories: Category[] }
                             label={cat.name}
                             image={cat.image_url || undefined}
                             icon={pickIcon(cat)}
+                            isMobile={isMobile}
                         />
                     ))}
                 </div>
@@ -177,13 +192,17 @@ export default function CategoryStrip({ categories }: { categories: Category[] }
     )
 }
 
-function CategoryCard({ href, label, hint, image, icon }: {
+function CategoryCard({ href, label, hint, image, icon, isMobile }: {
     href: string
     label: string
     hint?: string
     image?: string
     icon: React.ReactNode
+    isMobile: boolean
 }) {
+    const discSize = isMobile ? 56 : 88
+    const iconSize = isMobile ? 32 : 52
+    const haloSize = isMobile ? 70 : 110
     return (
         <Link href={href} style={{ textDecoration: 'none' }}>
             <motion.div
@@ -192,17 +211,17 @@ function CategoryCard({ href, label, hint, image, icon }: {
                 style={{
                     background: 'linear-gradient(180deg, #ffffff 0%, #faf6ec 100%)',
                     border: '1px solid rgba(212,175,55,0.22)',
-                    borderRadius: '20px',
-                    padding: '26px 18px 22px',
+                    borderRadius: isMobile ? '14px' : '20px',
+                    padding: isMobile ? '14px 8px 12px' : '26px 18px 22px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '14px',
+                    gap: isMobile ? '8px' : '14px',
                     textAlign: 'center',
                     boxShadow: '0 4px 20px rgba(26,26,26,0.04)',
                     transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
                     cursor: 'pointer',
-                    minHeight: '180px',
+                    minHeight: isMobile ? '120px' : '180px',
                     justifyContent: 'flex-start',
                     position: 'relative',
                     overflow: 'hidden'
@@ -211,18 +230,18 @@ function CategoryCard({ href, label, hint, image, icon }: {
                 {/* Soft halo behind icon */}
                 <div style={{
                     position: 'absolute',
-                    top: '14px',
+                    top: isMobile ? '8px' : '14px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: '110px',
-                    height: '110px',
+                    width: `${haloSize}px`,
+                    height: `${haloSize}px`,
                     background: 'radial-gradient(circle, rgba(212,175,55,0.10) 0%, transparent 70%)',
                     pointerEvents: 'none'
                 }} />
 
                 <div style={{
-                    width: '88px',
-                    height: '88px',
+                    width: `${discSize}px`,
+                    height: `${discSize}px`,
                     borderRadius: '50%',
                     background: image
                         ? `center/cover url(${image})`
@@ -233,17 +252,18 @@ function CategoryCard({ href, label, hint, image, icon }: {
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
-                    zIndex: 1
+                    zIndex: 1,
+                    flexShrink: 0
                 }}>
                     {!image && (
-                        <div style={{ width: '52px', height: '52px' }}>
+                        <div style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
                             {icon}
                         </div>
                     )}
                 </div>
 
                 <div style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '11px' : '14px',
                     fontWeight: 500,
                     color: '#1a1a1a',
                     fontFamily: 'var(--font-baskerville)',
@@ -255,7 +275,7 @@ function CategoryCard({ href, label, hint, image, icon }: {
                     {label}
                 </div>
 
-                {hint && (
+                {hint && !isMobile && (
                     <div style={{
                         fontSize: '9px',
                         color: GOLD,
