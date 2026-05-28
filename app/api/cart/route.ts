@@ -41,7 +41,8 @@ export async function GET() {
     // On the cart page (before checkout) we show the cheaper "prepaid" rate
     // as the default — the customer's actual payment method is locked in on
     // the checkout page, where the total recomputes if they pick COD.
-    const applyFee = cartAppliesDeliveryFee(data ?? [])
+    // Supabase types nested relations as arrays even for 1:1; cast for the helper.
+    const applyFee = cartAppliesDeliveryFee((data ?? []) as any[])
     const shipping = computeShipping(subtotal, 'prepaid', applyFee)
     const shippingCod = computeShipping(subtotal, 'cod', applyFee)
     const total = subtotal + shipping

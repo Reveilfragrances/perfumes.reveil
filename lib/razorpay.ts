@@ -95,7 +95,12 @@ export function computeShipping(
  * has apply_delivery_fee=false the cart is considered shipping-free.
  * Defaults missing/null flags to true so legacy rows behave as before.
  */
-export function cartAppliesDeliveryFee(items: Array<{ products?: { apply_delivery_fee?: boolean | null } | null } | null | undefined>): boolean {
+export function cartAppliesDeliveryFee(items: any[]): boolean {
     if (!items || items.length === 0) return true
-    return items.some(it => (it?.products?.apply_delivery_fee ?? true) === true)
+    return items.some(it => {
+        // Supabase can return the nested relation as either an object or
+        // a single-element array depending on the join inference; normalise.
+        const p = Array.isArray(it?.products) ? it.products[0] : it?.products
+        return (p?.apply_delivery_fee ?? true) === true
+    })
 }
