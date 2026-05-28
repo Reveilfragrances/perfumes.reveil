@@ -6,7 +6,7 @@ import { ShoppingBag, User, Menu, X, Heart, Loader2, Trash2, ChevronDown } from 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
+import type { User as SupabaseUser, AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useLenis } from 'lenis/react'
 
 
@@ -81,7 +81,7 @@ export function AnimatedNavbar() {
 
         initAuth()
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
             console.log('Auth Event:', event)
             setUser(session?.user ?? null)
 

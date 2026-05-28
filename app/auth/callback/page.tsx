@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PremiumLoader } from '@/components/store/PremiumLoader'
 
+// Auth callback reads ?code= / hash tokens at request time — never prerender it.
+// Also avoids "Supabase URL/key required" build errors when env vars are only on Vercel.
+export const dynamic = 'force-dynamic'
+
 export default function AuthCallbackPage() {
     const router = useRouter()
     const supabase = createClient()
