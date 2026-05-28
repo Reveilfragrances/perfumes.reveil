@@ -161,32 +161,77 @@ export default function CategoryStrip({ categories }: { categories: Category[] }
                     <div style={{ width: isMobile ? '24px' : '40px', height: '1px', background: 'rgba(212,175,55,0.4)' }} />
                 </div>
 
-                <div style={{
-                    display: 'grid',
-                    // Force 2-up on phones; auto-fit fluid grid on tablet/desktop.
-                    gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(180px, 1fr))',
-                    gap: isMobile ? '10px' : 'clamp(14px, 1.8vw, 22px)',
-                    maxWidth: '1200px',
-                    margin: '0 auto'
-                }}>
-                    <CategoryCard
-                        href="/products"
-                        label="All Fragrances"
-                        hint="View entire archive"
-                        icon={Icons.all}
-                        isMobile={isMobile}
-                    />
-                    {categories.map((cat) => (
+                {isMobile ? (
+                    // Mobile: horizontal scroll carousel with snap, similar to
+                    // the reference "Shop by Category" pattern. Cards keep the
+                    // full premium size — only the layout changes.
+                    <div
+                        className="reveil-cat-scroll"
+                        style={{
+                            display: 'flex',
+                            gap: '14px',
+                            overflowX: 'auto',
+                            scrollSnapType: 'x mandatory',
+                            WebkitOverflowScrolling: 'touch',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            // Bleed the strip to the page edges so cards
+                            // start flush-left and trail off the right edge
+                            // as a swipe hint.
+                            margin: '0 -16px',
+                            padding: '4px 16px 14px',
+                        }}
+                    >
+                        <style>{`.reveil-cat-scroll::-webkit-scrollbar { display: none; }`}</style>
+
+                        <div style={{ flex: '0 0 auto', scrollSnapAlign: 'start', width: '160px' }}>
+                            <CategoryCard
+                                href="/products"
+                                label="All Fragrances"
+                                hint="View entire archive"
+                                icon={Icons.all}
+                                isMobile={isMobile}
+                            />
+                        </div>
+                        {categories.map((cat) => (
+                            <div key={cat.id} style={{ flex: '0 0 auto', scrollSnapAlign: 'start', width: '160px' }}>
+                                <CategoryCard
+                                    href={`/products?category=${cat.slug}`}
+                                    label={cat.name}
+                                    image={cat.image_url || undefined}
+                                    icon={pickIcon(cat)}
+                                    isMobile={isMobile}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: 'clamp(14px, 1.8vw, 22px)',
+                        maxWidth: '1200px',
+                        margin: '0 auto'
+                    }}>
                         <CategoryCard
-                            key={cat.id}
-                            href={`/products?category=${cat.slug}`}
-                            label={cat.name}
-                            image={cat.image_url || undefined}
-                            icon={pickIcon(cat)}
+                            href="/products"
+                            label="All Fragrances"
+                            hint="View entire archive"
+                            icon={Icons.all}
                             isMobile={isMobile}
                         />
-                    ))}
-                </div>
+                        {categories.map((cat) => (
+                            <CategoryCard
+                                key={cat.id}
+                                href={`/products?category=${cat.slug}`}
+                                label={cat.name}
+                                image={cat.image_url || undefined}
+                                icon={pickIcon(cat)}
+                                isMobile={isMobile}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     )
@@ -200,9 +245,6 @@ function CategoryCard({ href, label, hint, image, icon, isMobile }: {
     icon: React.ReactNode
     isMobile: boolean
 }) {
-    const discSize = isMobile ? 56 : 88
-    const iconSize = isMobile ? 32 : 52
-    const haloSize = isMobile ? 70 : 110
     return (
         <Link href={href} style={{ textDecoration: 'none' }}>
             <motion.div
@@ -211,17 +253,17 @@ function CategoryCard({ href, label, hint, image, icon, isMobile }: {
                 style={{
                     background: 'linear-gradient(180deg, #ffffff 0%, #faf6ec 100%)',
                     border: '1px solid rgba(212,175,55,0.22)',
-                    borderRadius: isMobile ? '14px' : '20px',
-                    padding: isMobile ? '14px 8px 12px' : '26px 18px 22px',
+                    borderRadius: '20px',
+                    padding: '26px 18px 22px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: isMobile ? '8px' : '14px',
+                    gap: '14px',
                     textAlign: 'center',
                     boxShadow: '0 4px 20px rgba(26,26,26,0.04)',
                     transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
                     cursor: 'pointer',
-                    minHeight: isMobile ? '120px' : '180px',
+                    minHeight: '180px',
                     justifyContent: 'flex-start',
                     position: 'relative',
                     overflow: 'hidden'
@@ -230,18 +272,18 @@ function CategoryCard({ href, label, hint, image, icon, isMobile }: {
                 {/* Soft halo behind icon */}
                 <div style={{
                     position: 'absolute',
-                    top: isMobile ? '8px' : '14px',
+                    top: '14px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: `${haloSize}px`,
-                    height: `${haloSize}px`,
+                    width: '110px',
+                    height: '110px',
                     background: 'radial-gradient(circle, rgba(212,175,55,0.10) 0%, transparent 70%)',
                     pointerEvents: 'none'
                 }} />
 
                 <div style={{
-                    width: `${discSize}px`,
-                    height: `${discSize}px`,
+                    width: '88px',
+                    height: '88px',
                     borderRadius: '50%',
                     background: image
                         ? `center/cover url(${image})`
@@ -256,14 +298,14 @@ function CategoryCard({ href, label, hint, image, icon, isMobile }: {
                     flexShrink: 0
                 }}>
                     {!image && (
-                        <div style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
+                        <div style={{ width: '52px', height: '52px' }}>
                             {icon}
                         </div>
                     )}
                 </div>
 
                 <div style={{
-                    fontSize: isMobile ? '11px' : '14px',
+                    fontSize: '14px',
                     fontWeight: 500,
                     color: '#1a1a1a',
                     fontFamily: 'var(--font-baskerville)',
@@ -275,7 +317,7 @@ function CategoryCard({ href, label, hint, image, icon, isMobile }: {
                     {label}
                 </div>
 
-                {hint && !isMobile && (
+                {hint && (
                     <div style={{
                         fontSize: '9px',
                         color: GOLD,
