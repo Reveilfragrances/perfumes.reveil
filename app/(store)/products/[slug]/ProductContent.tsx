@@ -482,6 +482,58 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                             )
                         })()}
 
+                        {/* Actions — placed directly under the price, above the description */}
+                        <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch', paddingRight: isMobile ? '12px' : '0', marginBottom: isMobile ? '32px' : '40px' }}>
+                            <motion.button
+                                type="button"
+                                onClick={() => handleAction('buy')}
+                                disabled={adding}
+                                whileHover={!adding ? { backgroundColor: '#d4af37', color: '#1a1a1a' } : {}}
+                                whileTap={!adding ? { scale: 0.98 } : {}}
+                                style={{
+                                    flex: 1,
+                                    background: '#1a1a1a',
+                                    border: '1px solid #1a1a1a',
+                                    color: '#ffffff',
+                                    padding: '20px',
+                                    fontSize: isMobile ? '11px' : '14px', fontWeight: 700,
+                                    textTransform: 'uppercase', letterSpacing: '0.4em',
+                                    cursor: adding ? 'not-allowed' : 'pointer',
+                                    borderRadius: '999px',
+                                    boxShadow: '0 12px 24px rgba(0,0,0,0.12)',
+                                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                                }}
+                            >
+                                {adding ? <><Loader2 size={14} className="animate-spin" /> Processing</> : 'BUY NOW'}
+                            </motion.button>
+                            <motion.button
+                                type="button"
+                                onClick={() => handleAction('cart')}
+                                disabled={adding}
+                                whileHover={!adding ? { scale: 1.05, backgroundColor: '#1a1a1a', color: '#d4af37' } : {}}
+                                whileTap={!adding ? { scale: 0.95 } : {}}
+                                aria-label="Add to cart"
+                                style={{
+                                    width: '64px', height: '64px',
+                                    background: added ? '#10b981' : '#d4af37',
+                                    border: 'none',
+                                    color: added ? '#fff' : '#1a1a1a',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: adding ? 'not-allowed' : 'pointer',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 12px 24px rgba(212,175,55,0.35)',
+                                    flexShrink: 0,
+                                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                                }}
+                            >
+                                {adding ? <Loader2 size={18} className="animate-spin" /> : added ? <Check size={20} strokeWidth={2} /> : <ShoppingBag size={20} strokeWidth={1.6} />}
+                            </motion.button>
+                        </div>
+                        {actionError && (
+                            <p style={{ color: '#ff6b6b', fontSize: '11px', marginTop: '-20px', marginBottom: isMobile ? '32px' : '40px' }}>{actionError}</p>
+                        )}
+
                         <div style={{ marginBottom: isMobile ? '32px' : '40px' }}>
                             <FormattedDescription text={product.description || 'Accessing encrypted olfactory data. This composition is part of the REVEIL Laboratory Archive, designed for high-end olfactory resonance.'} />
                         </div>
@@ -489,7 +541,7 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                         {/* Technical Meta */}
                         <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '32px' : '64px', marginBottom: isMobile ? '32px' : '44px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: isMobile ? '24px' : '32px' }}>
                             <div>
-                                <div style={{ fontSize: '8px', color: '#d4af37', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em', fontWeight: 600 }}>Select Size</div>
+                                <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#d4af37', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em', fontWeight: 600 }}>Select Size</div>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                     {availableSizes.map((v) => (
                                         <motion.button
@@ -497,8 +549,8 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setSelectedVolume(v)}
                                             style={{
-                                                padding: '8px 16px',
-                                                fontSize: '10px',
+                                                padding: isMobile ? '8px 16px' : '10px 20px',
+                                                fontSize: isMobile ? '11px' : '13px',
                                                 background: selectedVolume === v ? '#d4af37' : 'transparent',
                                                 border: `1px solid ${selectedVolume === v ? '#d4af37' : 'rgba(212,175,55,0.5)'}`,
                                                 color: selectedVolume === v ? '#000' : '#1a1a1a',
@@ -514,15 +566,15 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                                 </div>
                             </div>
                             <div>
-                                <div style={{ fontSize: '8px', color: '#d4af37', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em', fontWeight: 600 }}>Lasts for</div>
-                                <div style={{ fontSize: '11px', color: '#1a1a1a', padding: '8px 0' }}>{product.technical_specs?.longevity || '12 HRS+'}</div>
+                                <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#d4af37', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em', fontWeight: 600 }}>Lasts for</div>
+                                <div style={{ fontSize: isMobile ? '12px' : '15px', color: '#1a1a1a', padding: '8px 0' }}>{product.technical_specs?.longevity || '12 HRS+'}</div>
                             </div>
                         </div>
 
                         {/* Delivery Pincode Check — Pan-India */}
                         <div style={{ marginBottom: isMobile ? '28px' : '36px' }}>
                             <div style={{
-                                fontSize: '8px', color: '#d4af37', textTransform: 'uppercase',
+                                fontSize: isMobile ? '10px' : '12px', color: '#d4af37', textTransform: 'uppercase',
                                 marginBottom: '12px', letterSpacing: '0.2em', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', gap: '8px'
                             }}>
@@ -605,57 +657,6 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
                             )}
                         </div>
 
-                        {/* Actions */}
-                        <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch', paddingRight: isMobile ? '12px' : '0' }}>
-                            <motion.button
-                                type="button"
-                                onClick={() => handleAction('buy')}
-                                disabled={adding}
-                                whileHover={!adding ? { backgroundColor: '#d4af37', color: '#1a1a1a' } : {}}
-                                whileTap={!adding ? { scale: 0.98 } : {}}
-                                style={{
-                                    flex: 1,
-                                    background: '#1a1a1a',
-                                    border: '1px solid #1a1a1a',
-                                    color: '#ffffff',
-                                    padding: '20px',
-                                    fontSize: '11px', fontWeight: 700,
-                                    textTransform: 'uppercase', letterSpacing: '0.4em',
-                                    cursor: adding ? 'not-allowed' : 'pointer',
-                                    borderRadius: '999px',
-                                    boxShadow: '0 12px 24px rgba(0,0,0,0.12)',
-                                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                                }}
-                            >
-                                {adding ? <><Loader2 size={14} className="animate-spin" /> Processing</> : 'BUY NOW'}
-                            </motion.button>
-                            <motion.button
-                                type="button"
-                                onClick={() => handleAction('cart')}
-                                disabled={adding}
-                                whileHover={!adding ? { scale: 1.05, backgroundColor: '#1a1a1a', color: '#d4af37' } : {}}
-                                whileTap={!adding ? { scale: 0.95 } : {}}
-                                aria-label="Add to cart"
-                                style={{
-                                    width: '64px', height: '64px',
-                                    background: added ? '#10b981' : '#d4af37',
-                                    border: 'none',
-                                    color: added ? '#fff' : '#1a1a1a',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: adding ? 'not-allowed' : 'pointer',
-                                    borderRadius: '50%',
-                                    boxShadow: '0 12px 24px rgba(212,175,55,0.35)',
-                                    flexShrink: 0,
-                                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                                }}
-                            >
-                                {adding ? <Loader2 size={18} className="animate-spin" /> : added ? <Check size={20} strokeWidth={2} /> : <ShoppingBag size={20} strokeWidth={1.6} />}
-                            </motion.button>
-                        </div>
-                        {actionError && (
-                            <p style={{ color: '#ff6b6b', fontSize: '11px', marginTop: '12px' }}>{actionError}</p>
-                        )}
                     </motion.div>
                 </section>
             </div>
