@@ -306,15 +306,15 @@ export default function AdminReviewsPage() {
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            style={{ background: '#fff', padding: '32px', borderRadius: '4px', width: '100%', maxWidth: '500px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', margin: 'auto' }}
+                            style={{ background: '#fff', padding: '28px 36px', borderRadius: '4px', width: '100%', maxWidth: '860px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', margin: 'auto', maxHeight: '86vh', overflowY: 'auto' }}
                         >
                             <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}><XCircle size={20} /></button>
-                            
-                            <h2 style={{ fontSize: '24px', fontFamily: 'serif', textTransform: 'uppercase', margin: '0 0 32px', fontWeight: 300, textAlign: 'center', letterSpacing: '-0.02em' }}>
+
+                            <h2 style={{ fontSize: '24px', fontFamily: 'serif', textTransform: 'uppercase', margin: '0 0 20px', fontWeight: 300, textAlign: 'center', letterSpacing: '-0.02em' }}>
                                 manual <span style={{ fontStyle: 'italic', color: '#d4af37' }}>entry</span>
                             </h2>
-                            
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                     <div className="input-group">
                                         <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Client Name</label>
@@ -369,30 +369,31 @@ export default function AdminReviewsPage() {
                                     </div>
                                 </div>
 
-                                <div className="input-group">
-                                    <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Avatar / DP URL</label>
-                                    <input 
-                                        style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '13px', outline: 'none', background: 'transparent' }} 
-                                        value={form.reviewer_avatar}
-                                        onChange={e => setForm({ ...form, reviewer_avatar: e.target.value })}
-                                        placeholder="https://googleusercontent.com/..."
-                                    />
-                                </div>
-
-                                <div className="input-group">
-                                    <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Review Heading</label>
-                                    <input 
-                                        style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '14px', outline: 'none', background: 'transparent' }} 
-                                        value={form.heading}
-                                        onChange={e => setForm({ ...form, heading: e.target.value })}
-                                        placeholder="Heading..."
-                                    />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                    <div className="input-group">
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Avatar / DP URL</label>
+                                        <input
+                                            style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '13px', outline: 'none', background: 'transparent' }}
+                                            value={form.reviewer_avatar}
+                                            onChange={e => setForm({ ...form, reviewer_avatar: e.target.value })}
+                                            placeholder="https://googleusercontent.com/..."
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Review Heading</label>
+                                        <input
+                                            style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '14px', outline: 'none', background: 'transparent' }}
+                                            value={form.heading}
+                                            onChange={e => setForm({ ...form, heading: e.target.value })}
+                                            placeholder="Heading..."
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="input-group">
                                     <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Review Text</label>
-                                    <textarea 
-                                        style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '15px', outline: 'none', minHeight: '80px', resize: 'none', fontFamily: 'serif', fontStyle: 'italic', background: 'transparent', lineHeight: 1.5 }} 
+                                    <textarea
+                                        style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '15px', outline: 'none', minHeight: '64px', resize: 'none', fontFamily: 'serif', fontStyle: 'italic', background: 'transparent', lineHeight: 1.5 }}
                                         value={form.comment}
                                         onChange={e => setForm({ ...form, comment: e.target.value })}
                                         placeholder="Describe the experience..."
@@ -400,29 +401,31 @@ export default function AdminReviewsPage() {
                                     />
                                 </div>
 
-                                <div className="input-group">
-                                    <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Media URLs (JSON Array)</label>
-                                    <textarea 
-                                        style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '12px', outline: 'none', minHeight: '40px', resize: 'none', background: 'transparent' }} 
-                                        value={JSON.stringify(form.media_urls)}
-                                        onChange={e => {
-                                            try {
-                                                const parsed = JSON.parse(e.target.value)
-                                                if (Array.isArray(parsed)) setForm({ ...form, media_urls: parsed })
-                                            } catch {}
-                                        }}
-                                        placeholder='["url1", "url2"]'
-                                    />
-                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'end' }}>
+                                    <div className="input-group">
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Media URLs (JSON Array)</label>
+                                        <input
+                                            style={{ width: '100%', padding: '10px 0', border: 'none', borderBottom: '1px solid #eee', fontSize: '12px', outline: 'none', background: 'transparent' }}
+                                            value={JSON.stringify(form.media_urls)}
+                                            onChange={e => {
+                                                try {
+                                                    const parsed = JSON.parse(e.target.value)
+                                                    if (Array.isArray(parsed)) setForm({ ...form, media_urls: parsed })
+                                                } catch {}
+                                            }}
+                                            placeholder='["url1", "url2"]'
+                                        />
+                                    </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#fcfcfc', padding: '12px', borderRadius: '4px', border: '1px solid #eee' }}>
-                                    <input 
-                                        type="checkbox" id="modal_featured" 
-                                        checked={form.is_featured}
-                                        onChange={e => setForm({ ...form, is_featured: e.target.checked })}
-                                        style={{ width: '14px', height: '14px', accentColor: '#000', cursor: 'pointer' }}
-                                    />
-                                    <label htmlFor="modal_featured" style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}>Feature in Public Showcase</label>
+                                    <label htmlFor="modal_featured" style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#fcfcfc', padding: '11px 12px', borderRadius: '4px', border: '1px solid #eee', cursor: 'pointer' }}>
+                                        <input
+                                            type="checkbox" id="modal_featured"
+                                            checked={form.is_featured}
+                                            onChange={e => setForm({ ...form, is_featured: e.target.checked })}
+                                            style={{ width: '14px', height: '14px', accentColor: '#000', cursor: 'pointer' }}
+                                        />
+                                        <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Feature in Public Showcase</span>
+                                    </label>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
