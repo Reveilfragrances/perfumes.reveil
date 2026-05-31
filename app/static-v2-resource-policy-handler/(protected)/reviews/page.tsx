@@ -292,12 +292,12 @@ export default function AdminReviewsPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}
+                        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 100, padding: '20px', overflowY: 'auto' }}
                     >
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            style={{ background: '#fff', padding: '32px', borderRadius: '4px', width: '100%', maxWidth: '500px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', maxHeight: 'calc(100vh - 40px)', overflowY: 'auto' }}
+                            style={{ background: '#fff', padding: '32px', borderRadius: '4px', width: '100%', maxWidth: '500px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', margin: 'auto' }}
                         >
                             <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}><XCircle size={20} /></button>
                             
