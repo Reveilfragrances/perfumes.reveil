@@ -1,6 +1,6 @@
 'use client'
 import { useState, useMemo, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { Search, LayoutGrid, List, SlidersHorizontal, Filter, Plus, Loader2, Sparkles } from 'lucide-react'
 import { PremiumLoader } from '@/components/store/PremiumLoader'
 import { useSearchParams } from 'next/navigation'
@@ -40,6 +40,14 @@ export function ProductListContent() {
     const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set())
 
     const supabase = createClient()
+
+    // Scroll-driven brand logo: the big centered logo fades/lifts away as the
+    // page scrolls, and a small logo fades in docked beside "N products found".
+    const { scrollY } = useScroll()
+    const heroLogoOpacity = useTransform(scrollY, [0, 120], [1, 0])
+    const heroLogoY = useTransform(scrollY, [0, 120], [0, -28])
+    const dockLogoOpacity = useTransform(scrollY, [70, 170], [0, 1])
+    const dockLogoX = useTransform(scrollY, [70, 170], [-14, 0])
 
     useEffect(() => {
         async function fetchProducts() {
@@ -139,13 +147,14 @@ export function ProductListContent() {
             {/* SECTION 1: TOP HERO (FIXED) */}
             {!isMobile && (
             <>
-                {/* Pinned brand logo — stays fixed below the navbar while the page
-                    scrolls. Click-through (pointerEvents: none) and sits below the
-                    navbar (zIndex 40 < navbar's 100) so the capsule always wins. */}
-                <div style={{
+                {/* Brand logo — centered at the top on load, then fades/lifts away
+                    as you scroll (handing off to the small docked logo in the
+                    toolbar). Click-through, and below the navbar (zIndex 40). */}
+                <motion.div style={{
                     position: 'fixed', top: '92px', left: 0, right: 0, zIndex: 40,
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    gap: '12px', pointerEvents: 'none'
+                    gap: '12px', pointerEvents: 'none',
+                    opacity: heroLogoOpacity, y: heroLogoY
                 }}>
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -182,7 +191,7 @@ export function ProductListContent() {
                         </span>
                         <div style={{ width: '24px', height: '1px', background: 'rgba(212,175,55,0.3)' }} />
                     </motion.div>
-                </div>
+                </motion.div>
 
                 {/* Spacer reserves the logo's space at the top so the grid starts
                     cleanly below it; keeps the gradient band, which scrolls away. */}
@@ -309,7 +318,17 @@ export function ProductListContent() {
                         padding: isMobile ? '10px 16px' : '20px 80px', background: 'rgba(248,247,242,0.85)', backdropFilter: 'blur(20px)',
                         borderBottom: '1px solid rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                     }}>
-                        <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '14px' }}>
+                            {!isMobile && (
+                                <motion.img
+                                    src="/images/logo-text.webp"
+                                    alt="Reveil"
+                                    style={{
+                                        height: '24px', width: 'auto', display: 'block',
+                                        opacity: dockLogoOpacity, x: dockLogoX
+                                    }}
+                                />
+                            )}
                             <span style={{ fontSize: isMobile ? '8px' : '10px', color: '#555', letterSpacing: '0.2em' }}>
                                 {loading ? 'Loading...' : `${filteredAndSortedProducts.length} product${filteredAndSortedProducts.length === 1 ? '' : 's'} found`}
                             </span>
