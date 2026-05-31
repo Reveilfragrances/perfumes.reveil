@@ -306,7 +306,7 @@ export default function AdminReviewsPage() {
                         <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            style={{ background: '#fff', padding: '28px 36px', borderRadius: '4px', width: '100%', maxWidth: '860px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', margin: 'auto', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                            style={{ background: '#fff', padding: '28px 32px', borderRadius: '4px', width: '100%', maxWidth: '760px', boxShadow: '0 50px 100px rgba(0,0,0,0.3)', position: 'relative', margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}
                         >
                             <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}><XCircle size={20} /></button>
 
@@ -314,9 +314,7 @@ export default function AdminReviewsPage() {
                                 manual <span style={{ fontStyle: 'italic', color: '#d4af37' }}>entry</span>
                             </h2>
 
-                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0 }}>
-                                {/* Scrollable field area — only this scrolls if the screen is short */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', minHeight: 0, flex: 1, paddingRight: '4px' }}>
+                            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                     <div className="input-group">
                                         <label style={{ display: 'block', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#999', marginBottom: '8px' }}>Client Name</label>
@@ -429,10 +427,10 @@ export default function AdminReviewsPage() {
                                         <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Feature in Public Showcase</span>
                                     </label>
                                 </div>
-                                </div>
 
-                                {/* Fixed footer — always visible, never needs scrolling to reach */}
-                                <div style={{ display: 'flex', gap: '16px', flexShrink: 0, paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                {/* Sticky footer — stays pinned to the bottom of the modal while it
+                                    scrolls, so Save/Cancel are always visible without scrolling there. */}
+                                <div style={{ display: 'flex', gap: '16px', position: 'sticky', bottom: 0, background: '#fff', paddingTop: '16px', marginTop: '4px', borderTop: '1px solid #f0f0f0' }}>
                                     <button type="submit" style={{ flex: 1, background: '#000', color: '#fff', border: 'none', padding: '14px', borderRadius: '2px', cursor: 'pointer', fontWeight: 800, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.3em' }}>
                                         {editingReview ? 'Update' : 'Save'}
                                     </button>
