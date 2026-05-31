@@ -45,6 +45,15 @@ export default function AdminReviewsPage() {
         fetchProducts()
     }, [])
 
+    // Lock the page behind the modal so the wheel scrolls the popup (which has
+    // its own overflow) instead of the page underneath it.
+    useEffect(() => {
+        if (!isModalOpen) return
+        const prevOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = prevOverflow }
+    }, [isModalOpen])
+
     async function fetchReviews() {
         setLoading(true)
         try {
