@@ -12,12 +12,12 @@ export default function SignOutButton() {
         router.push('/admin@reveil/login')
         router.refresh()
     }
-
+// Button of signout 
     return (
         <button
             onClick={handleSignOut}
             style={{
-                marginTop: 'auto',
+                marginTop: '10px',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 color: '#ff4d4d',
