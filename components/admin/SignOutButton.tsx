@@ -17,7 +17,7 @@ export default function SignOutButton() {
         <button
             onClick={handleSignOut}
             style={{
-                marginTop: '10px',
+                marginTop: 'auto',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 color: '#ff4d4d',
