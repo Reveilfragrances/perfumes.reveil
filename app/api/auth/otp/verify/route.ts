@@ -129,7 +129,31 @@ export async function POST(request: Request) {
             }
 
             needsName = !profileByPhone.first_name && !profileByPhone.full_name && !safeFirst
+        } else if (mode === 'login') {
+            // LOGIN must NEVER create an account. The only reason we proceed here
+            // without a profile is to heal an *existing* orphaned auth user (auth
+            // row present, profile missing). If the number isn't known anywhere,
+            // reject with user_not_found so the client routes them to sign-up.
+            const orphanId = await findAuthUserIdByPhone(supabaseAdmin, submittedDigits)
+            if (!orphanId) {
+                return NextResponse.json(
+                    { error: 'No account found for this number. Please create an account first.', error_code: 'user_not_found' },
+                    { status: 404 }
+                )
+            }
+
+            userId = orphanId
+            const { data: authData } = await supabaseAdmin.auth.admin.getUserById(userId)
+            userEmail = authData?.user?.email || `${submittedDigits}@reveil.internal`
+
+            // Heal the missing profile (core identity only — login carries no name).
+            profileWriteError = await upsertProfile(supabaseAdmin, {
+                id: userId,
+                phone: cleanPhone,
+                role: 'user',
+            })
         } else {
+            // SIGNUP — create the user, or recover an orphan if one already exists.
             // auth.users.email is a login-identifier only. Use the real email
             // when the user gave us one, otherwise fall back to an internal
             // placeholder. The placeholder NEVER reaches profiles.email.

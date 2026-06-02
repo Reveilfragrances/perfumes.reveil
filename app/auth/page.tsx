@@ -201,6 +201,14 @@ function AuthPageContent() {
             }
 
             if (!res.ok || data.error) {
+                // Backstop: if the number turns out not to be registered at verify
+                // time (login flow), show the same "create an account" popup the
+                // pre-check uses instead of a raw error — never log them in.
+                if (data?.error_code === 'user_not_found') {
+                    setShowNotRegistered(true)
+                    setLoading(false)
+                    return
+                }
                 const extra = data.detail || data.hint
                 setError((data.error || 'OTP verification failed. Please try again.') + (extra ? ` — ${extra}` : ''))
                 setLoading(false)
