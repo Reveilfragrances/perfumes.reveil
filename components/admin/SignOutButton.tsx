@@ -30,7 +30,7 @@ export default function SignOutButton() {
                 display: 'block'
             }}
         >
-            Sign Out
+            Log Out
         </button>
     )
 }
