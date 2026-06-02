@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Loader2, ShieldCheck, Truck, MapPin, Plus, ArrowRight, Check, CreditCard, Wallet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { isOdishaPincode } from '@/lib/validators'
+import { isOdishaPincode, isEmail, realEmail } from '@/lib/validators'
 
 type Address = {
     id: string
@@ -97,7 +97,11 @@ function CheckoutInner() {
                     router.push(`/auth?next=${encodeURIComponent(next)}`)
                     return
                 }
-                setUserEmail(user.email || '')
+                // Pre-fill only a REAL email — phone-OTP signups carry a synthetic
+                // "<phone>@reveil.internal" placeholder that must never be shown
+                // or used as a contact address.
+                const existingEmail = realEmail(user.email)
+                if (existingEmail) setUserEmail(existingEmail)
 
                 const addrRes = await fetch('/api/user/address')
                 if (addrRes.status === 401) {
@@ -161,6 +165,13 @@ function CheckoutInner() {
     const total = subtotal + shipping
     const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || null
 
+    // The checkout URL (incl. buy-now params) we send to the address book so it
+    // can return the user here after they save a new address.
+    const checkoutReturnPath = isBuyNow
+        ? `/checkout?buyNow=${buyNowProductId}&qty=${buyNowQty}`
+        : '/checkout'
+    const addAddressHref = `/address-book?next=${encodeURIComponent(checkoutReturnPath)}`
+
     const placeCodOrder = async () => {
         if (!selectedAddress) return
         const orderItems = items.map((i) => ({
@@ -172,6 +183,7 @@ function CheckoutInner() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 items: orderItems,
+                email: userEmail.trim(),
                 shipping_address: {
                     label: selectedAddress.label,
                     full_name: selectedAddress.full_name,
@@ -223,6 +235,7 @@ function CheckoutInner() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 address_id: selectedAddress.id,
+                email: userEmail.trim(),
                 buy_now: isBuyNow ? { product_id: buyNowProductId, quantity: buyNowQty } : undefined,
             }),
         })
@@ -294,6 +307,14 @@ function CheckoutInner() {
             setError('Please select a delivery address.')
             return
         }
+        if (!userEmail.trim()) {
+            setError('Please enter your email address to receive order updates.')
+            return
+        }
+        if (!isEmail(userEmail.trim())) {
+            setError('Please enter a valid email address.')
+            return
+        }
         if (!isOdishaPincode(selectedAddress.pincode)) {
             setError('Please choose an address with a valid 6-digit Indian pincode.')
             return
@@ -349,7 +370,7 @@ function CheckoutInner() {
                             <section style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '2px', padding: isMobile ? '20px' : '32px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                                     <h2 style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em', color: '#d4af37', fontFamily: 'var(--font-baskerville)', margin: 0 }}>Delivery Address</h2>
-                                    <Link href="/address-book" style={{ fontSize: '9px', color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase', letterSpacing: '0.2em', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Link href={addAddressHref} style={{ fontSize: '9px', color: 'rgba(0,0,0,0.5)', textTransform: 'uppercase', letterSpacing: '0.2em', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <Plus size={12} /> Add New
                                     </Link>
                                 </div>
@@ -358,7 +379,7 @@ function CheckoutInner() {
                                     <div style={{ padding: '32px', border: '1px dashed rgba(0,0,0,0.1)', textAlign: 'center' }}>
                                         <MapPin size={20} color="#666" style={{ marginBottom: '12px' }} />
                                         <p style={{ fontSize: '12px', color: '#888', margin: '0 0 16px' }}>You don't have any saved addresses yet.</p>
-                                        <Link href="/address-book" style={{ display: 'inline-block', padding: '12px 24px', border: '1px solid #d4af37', color: '#d4af37', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', textDecoration: 'none' }}>
+                                        <Link href={addAddressHref} style={{ display: 'inline-block', padding: '12px 24px', border: '1px solid #d4af37', color: '#d4af37', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', textDecoration: 'none' }}>
                                             Add Address
                                         </Link>
                                     </div>
@@ -401,6 +422,31 @@ function CheckoutInner() {
                                         })}
                                     </div>
                                 )}
+                            </section>
+
+                            {/* Contact Email */}
+                            <section style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '2px', padding: isMobile ? '20px' : '32px' }}>
+                                <h2 style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em', color: '#d4af37', fontFamily: 'var(--font-baskerville)', margin: '0 0 8px' }}>Contact Email</h2>
+                                <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.5)', margin: '0 0 16px' }}>We'll send your order confirmation and updates here.</p>
+                                <input
+                                    type="email"
+                                    value={userEmail}
+                                    onChange={(e) => setUserEmail(e.target.value)}
+                                    placeholder="you@example.com"
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        background: '#fff',
+                                        border: 'none',
+                                        borderBottom: '1px solid rgba(0,0,0,0.15)',
+                                        color: '#1a1a1a',
+                                        fontSize: '14px',
+                                        padding: '12px 2px',
+                                        outline: 'none',
+                                        fontFamily: 'var(--font-baskerville)',
+                                        boxSizing: 'border-box',
+                                    }}
+                                />
                             </section>
 
                             {/* Payment Method */}
@@ -512,10 +558,10 @@ function CheckoutInner() {
 
                             <button
                                 onClick={handlePlaceOrder}
-                                disabled={placing || !selectedAddressId}
+                                disabled={placing || !selectedAddressId || !userEmail.trim()}
                                 style={{
                                     width: '100%',
-                                    background: placing || !selectedAddressId ? '#888' : '#1a1a1a',
+                                    background: placing || !selectedAddressId || !userEmail.trim() ? '#888' : '#1a1a1a',
                                     color: '#fff',
                                     border: 'none',
                                     padding: '18px',

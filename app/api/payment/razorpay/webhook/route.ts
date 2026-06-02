@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyRazorpayWebhookSignature } from '@/lib/razorpay'
 import { finaliseRazorpayOrder } from '@/lib/orders'
-import { createShiprocketOrderForOrderId } from '@/lib/fulfillment'
 
 /**
  * Razorpay webhook receiver.
@@ -57,15 +56,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
-  if (!result.idempotent) {
-    ;(async () => {
-      try {
-        await createShiprocketOrderForOrderId(result.orderId)
-      } catch (err: any) {
-        console.error('[webhook shiprocket]', err?.message)
-      }
-    })()
-  }
+  // The order is recorded as paid, but Shiprocket is NOT triggered here — an
+  // admin must review and confirm the order first (see the admin panel).
 
   return NextResponse.json({ ok: true, order_id: result.orderId })
 }

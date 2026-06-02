@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth/require'
 import { getRazorpay, verifyRazorpaySignature } from '@/lib/razorpay'
 import { finaliseRazorpayOrder } from '@/lib/orders'
-import { createShiprocketOrderForOrderId } from '@/lib/fulfillment'
 
 export async function POST(request: Request) {
     try {
@@ -80,14 +79,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: result.error }, { status: result.status })
         }
 
-        // 5. Fire-and-forget Shiprocket — call lib directly, not the HTTP route.
-        ;(async () => {
-            try {
-                await createShiprocketOrderForOrderId(result.orderId)
-            } catch (err: any) {
-                console.error('[Shiprocket trigger]', err?.message)
-            }
-        })()
+        // Payment is captured and the order recorded, but we do NOT push to
+        // Shiprocket here. The order waits in "pending approval" until an admin
+        // reviews and confirms it from the admin panel.
 
         return NextResponse.json({ success: true, order_id: result.orderId }, { status: 201 })
     } catch (err: any) {

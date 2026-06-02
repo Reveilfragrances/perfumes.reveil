@@ -569,6 +569,146 @@ export async function triggerOrderConfirmationEmail(orderId: string) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
+// ORDER CANCELLED EMAIL
+// Sent when an admin cancels/rejects an order from the review flow. Informs the
+// customer their order was cancelled and lists the affected order details.
+// ────────────────────────────────────────────────────────────────────────────
+export async function sendOrderCancellationEmail(order: any, userEmail: string) {
+    const { id, total, order_items, profiles } = order
+    const customerName = profiles?.full_name || 'Valued Customer'
+
+    if (!resend) {
+        console.log('--- MOCK ORDER CANCELLATION START ---')
+        console.log(`To: ${userEmail}`)
+        console.log(`Subject: REVEIL | Order Cancelled [${id.slice(0, 8)}]`)
+        console.log('--- MOCK ORDER CANCELLATION END ---')
+        return { success: true, mocked: true }
+    }
+
+    try {
+        const itemsHtml = (order_items || []).map((item: any) => `
+            <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
+                    <p style="margin: 0; color: #fff; font-size: 14px; font-weight: 500;">${item.products?.name || 'Item'}</p>
+                    <p style="margin: 4px 0 0; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;">Quantity: ${item.quantity}</p>
+                </td>
+                <td style="padding: 12px 0; border-bottom: 1px solid #1a1a1a; text-align: right; color: #d4af37; font-weight: 500;">
+                    ₹${(item.price ?? 0).toLocaleString()}
+                </td>
+            </tr>
+        `).join('')
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_ADDRESS,
+            to: userEmail,
+            subject: `REVEIL | Order Cancelled [${id.slice(0, 8).toUpperCase()}]`,
+            html: `
+                <div style="background-color: #050505; color: #fff; font-family: 'Baskerville', 'Georgia', serif; padding: 40px; max-width: 600px; margin: 0 auto; border: 1px solid #1a1a1a;">
+                    <div style="text-align: center; margin-bottom: 50px;">
+                        <h1 style="color: #d4af37; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; font-size: 28px;">REVEIL</h1>
+                        <p style="color: #666; font-size: 10px; letter-spacing: 0.5em; margin-top: 12px; text-transform: uppercase;">The Art of Presence</p>
+                    </div>
+
+                    <div style="margin-bottom: 40px; text-align: center;">
+                        <h2 style="font-weight: 300; font-size: 22px; color: #fff; text-transform: uppercase; letter-spacing: 0.1em;">Order Cancelled</h2>
+                        <div style="width: 30px; height: 1px; background: #d4af37; margin: 15px auto;"></div>
+                        <p style="color: #888; font-size: 14px; line-height: 1.8; margin-top: 20px;">
+                            Dear ${customerName},<br><br>
+                            We're sorry to inform you that, due to unforeseen circumstances, your order has been cancelled. If any payment was made, it will be refunded as per our policy. We sincerely apologise for the inconvenience.
+                        </p>
+                    </div>
+
+                    <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 25px; margin-bottom: 40px;">
+                        <h3 style="color: #d4af37; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; margin: 0 0 20px; font-weight: 400;">Cancelled Order</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td style="padding: 25px 0 0; color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em;">Order Total</td>
+                                    <td style="padding: 25px 0 0; text-align: right; color: #d4af37; font-size: 20px; font-weight: 600;">₹${(total ?? 0).toLocaleString()}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div style="margin-bottom: 40px;">
+                        <p style="color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px;">Order Reference</p>
+                        <p style="color: #fff; font-size: 12px; margin: 0; font-family: monospace;">#${id.toUpperCase().slice(0, 12)}</p>
+                    </div>
+
+                    <div style="text-align: center; border-top: 1px solid #1a1a1a; padding-top: 40px; color: #444; font-size: 11px;">
+                        <p style="margin-bottom: 15px;">Questions about this cancellation? Reply to this email and we'll help.</p>
+                        <div style="margin-top: 30px;">
+                            <p style="letter-spacing: 0.3em; text-transform: uppercase; color: #666;">${SITE_HOST}</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        })
+
+        if (error) {
+            console.error('[sendOrderCancellationEmail] Resend error:', error)
+            return { success: false, error }
+        }
+        return { success: true, data }
+    } catch (err) {
+        console.error('[sendOrderCancellationEmail] Dispatch error:', err)
+        return { success: false, error: err }
+    }
+}
+
+/**
+ * Fetch the order + customer email and send the cancellation email. Called from
+ * the admin cancel endpoint. Errors are logged, never thrown, so a failed email
+ * never breaks the cancellation itself.
+ */
+export async function triggerOrderCancellationEmail(orderId: string): Promise<EmailTriggerResult> {
+    try {
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const admin = createAdminClient()
+
+        const { data: order } = await admin
+            .from('orders')
+            .select(`
+                id,
+                total,
+                user_id,
+                profiles ( full_name, email ),
+                order_items ( quantity, price, products ( name ) )
+            `)
+            .eq('id', orderId)
+            .single()
+
+        if (!order) {
+            console.error('[triggerOrderCancellationEmail] Order not found:', orderId)
+            return { ok: false, sent: false, reason: 'order_not_found' }
+        }
+
+        const profile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles
+        const email = await resolveUserEmail(order.user_id, profile?.email)
+        if (!email) {
+            console.warn('[triggerOrderCancellationEmail] No usable email — skipping send')
+            return { ok: false, sent: false, reason: 'no_customer_email' }
+        }
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('[triggerOrderCancellationEmail] RESEND_API_KEY missing — email mocked')
+            return { ok: false, sent: false, reason: 'resend_not_configured' }
+        }
+
+        const result = await sendOrderCancellationEmail({ ...order, profiles: profile }, email)
+        if (!result.success) {
+            return { ok: false, sent: false, reason: (result as any).error?.message || 'email_send_failed' }
+        }
+        return { ok: true, sent: true, mocked: (result as any).mocked }
+    } catch (err: any) {
+        console.error('[triggerOrderCancellationEmail] Error:', err?.message || err)
+        return { ok: false, sent: false, reason: err?.message || 'unknown_error' }
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // CONTACT INQUIRY → ADMIN EMAIL
 // Fired whenever a customer submits the public contact form. Goes to
 // reveilfragrances@gmail.com with the customer's contact details so the

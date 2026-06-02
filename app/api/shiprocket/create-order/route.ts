@@ -25,6 +25,13 @@ export async function POST(request: Request) {
   try {
     const result = await createShiprocketOrderForOrderId(orderId)
 
+    // Idempotency: the order was already confirmed/pushed to Shiprocket (e.g.
+    // the admin clicked twice or refreshed). Do NOT re-assign a courier or
+    // re-send the confirmation email — just acknowledge.
+    if (result.already_exists) {
+      return NextResponse.json({ success: true, ...result, alreadyConfirmed: true })
+    }
+
     // After Shiprocket order creation, auto-assign the cheapest serviceable
     // courier so the customer's email contains a real AWB + tracking link
     // instead of "Being assigned…". This is the same logic an admin would

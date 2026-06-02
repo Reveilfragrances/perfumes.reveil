@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { MapPin, Plus, Trash2, Home, Briefcase, ArrowLeft, Check, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { isOdishaPincode } from '@/lib/validators'
+import { isOdishaPincode, isSafeInternalPath } from '@/lib/validators'
 
 type Address = {
     id: string
@@ -19,6 +19,25 @@ type Address = {
     state: string
     pincode: string
     is_default: boolean
+}
+
+// The /api/user/address endpoint returns raw DB columns
+// (full_name, address_line1, address_line2, pincode). Map them onto the
+// shape this page renders/edits (name, line1, line2, pincode) so the full
+// address shows and pre-fills correctly instead of only city/state/pincode.
+function mapAddress(a: any): Address {
+    return {
+        id: a.id,
+        label: a.label,
+        name: a.full_name ?? a.name ?? '',
+        phone: a.phone ?? '',
+        line1: a.address_line1 ?? a.line1 ?? '',
+        line2: a.address_line2 ?? a.line2 ?? '',
+        city: a.city ?? '',
+        state: a.state ?? '',
+        pincode: a.pincode ?? a.pin ?? '',
+        is_default: !!a.is_default,
+    }
 }
 
 export default function AddressBookPage() {
@@ -34,6 +53,16 @@ export default function AddressBookPage() {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
     const [isMobile, setIsMobile] = useState(false)
+    // When the user is sent here from the checkout flow ("Add New" link), the
+    // checkout URL is passed as ?next=... so we can return them to checkout
+    // after they save — preserving their cart / buy-now session.
+    const [returnTo, setReturnTo] = useState<string | null>(null)
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const next = params.get('next')
+        if (next && isSafeInternalPath(next)) setReturnTo(next)
+    }, [])
 
     useEffect(() => {
         const checkRes = () => setIsMobile(window.innerWidth < 900)
@@ -54,7 +83,7 @@ export default function AddressBookPage() {
 
                 const res = await fetch('/api/user/address')
                 const data = await res.json()
-                if (data.addresses) setAddresses(data.addresses)
+                if (data.addresses) setAddresses(data.addresses.map(mapAddress))
             } catch (err) {
                 console.error('Load error:', err)
             } finally {
@@ -101,12 +130,19 @@ export default function AddressBookPage() {
             // Reload addresses
             const loadRes = await fetch('/api/user/address')
             const loadData = await loadRes.json()
-            if (loadData.addresses) setAddresses(loadData.addresses)
+            if (loadData.addresses) setAddresses(loadData.addresses.map(mapAddress))
 
             setSuccess(editingId ? 'Address updated!' : 'Address saved!')
             setShowForm(false)
             setEditingId(null)
             setForm(emptyForm)
+
+            // Came from checkout → send the user straight back so they can
+            // continue placing their order without restarting checkout.
+            if (returnTo) {
+                router.push(returnTo)
+                return
+            }
         } catch (err: any) {
             setError(err.message)
         } finally {
@@ -146,7 +182,7 @@ export default function AddressBookPage() {
             // Refresh list
             const loadRes = await fetch('/api/user/address')
             const loadData = await loadRes.json()
-            if (loadData.addresses) setAddresses(loadData.addresses)
+            if (loadData.addresses) setAddresses(loadData.addresses.map(mapAddress))
         } catch (err: any) {
             setError(err.message)
         }

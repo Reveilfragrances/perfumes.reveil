@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireUser } from '@/lib/auth/require'
-import { isUuid, clampInt } from '@/lib/validators'
+import { isUuid, clampInt, isEmail } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
-import { createShiprocketOrderForOrderId } from '@/lib/fulfillment'
 import { computeShipping } from '@/lib/razorpay'
-import { triggerOrderConfirmationEmail } from '@/lib/utils/email'
 import { NextResponse } from 'next/server'
 
 const COD_MAX_TOTAL_INR = 5000
@@ -85,10 +83,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { items, shipping_address, payment_method = 'cod', buy_now = false } = body || {}
+    const { items, shipping_address, payment_method = 'cod', buy_now = false, email } = body || {}
 
     if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
         return NextResponse.json({ error: 'items array is required' }, { status: 400 })
+    }
+    // Email is mandatory — it's the contact address for order confirmation and
+    // communication. Validated here so the API can't be called without one.
+    const customerEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
+    if (!isEmail(customerEmail)) {
+        return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
     }
     if (!shipping_address || typeof shipping_address !== 'object') {
         return NextResponse.json({ error: 'shipping_address is required' }, { status: 400 })
@@ -160,6 +164,18 @@ export async function POST(request: Request) {
 
     // Atomic create-order + decrement stock via RPC (see security.sql).
     const admin = createAdminClient()
+
+    // Persist the checkout email onto the profile — this is the address every
+    // order email (confirmation/shipment/cancellation) reads from, so the
+    // customer is reachable for this and future orders.
+    const { error: emailSaveError } = await admin
+        .from('profiles')
+        .update({ email: customerEmail })
+        .eq('id', user.id)
+    if (emailSaveError) {
+        console.error('[orders] Failed to persist customer email (non-fatal):', emailSaveError.message)
+    }
+
     const { data: orderId, error: rpcError } = await admin.rpc('create_cod_order', {
         p_user_id: user.id,
         p_shipping_address: shipping_address,
@@ -239,14 +255,10 @@ export async function POST(request: Request) {
         .eq('id', orderId as string)
         .single()
 
-    ;(async () => {
-        try {
-            await createShiprocketOrderForOrderId(orderId as string)
-            await triggerOrderConfirmationEmail(orderId as string)
-        } catch (err: any) {
-            console.error('[orders] Background tasks failed:', err?.message)
-        }
-    })()
+    // NOTE: The order is intentionally left in "pending approval" — we do NOT
+    // push to Shiprocket or send a confirmation email here. That happens only
+    // after an admin reviews and confirms the order from the admin panel
+    // (see /api/shiprocket/create-order).
 
     return NextResponse.json(fullOrder, { status: 201 })
 }

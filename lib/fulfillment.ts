@@ -92,6 +92,7 @@ export async function createShiprocketOrderForOrderId(orderId: string) {
     return {
       shiprocket_order_id: order.shiprocket_order_id,
       shipment_id: order.shiprocket_shipment_id,
+      already_exists: true,
     }
   }
 
@@ -243,5 +244,5 @@ export async function createShiprocketOrderForOrderId(orderId: string) {
     )
   }
 
-  return { shiprocket_order_id: data.order_id, shipment_id: data.shipment_id }
+  return { shiprocket_order_id: data.order_id, shipment_id: data.shipment_id, already_exists: false }
 }

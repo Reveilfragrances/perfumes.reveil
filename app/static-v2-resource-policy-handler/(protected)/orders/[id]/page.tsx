@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import OrderStatusBadge from '@/components/admin/OrderStatusBadge'
 import CancelOrderButton from '@/components/admin/CancelOrderButton'
+import ConfirmOrderButton from '@/components/admin/ConfirmOrderButton'
 import { getDisplayStatus } from '@/lib/utils/order-status'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,10 +64,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     <div style={{ color: '#64748b', marginTop: '4px' }}>#{order.id.toUpperCase()}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ marginBottom: '8px' }}>
+                    <div style={{ marginBottom: '12px' }}>
                         <OrderStatusBadge status={getDisplayStatus(order)} />
                     </div>
-                    <CancelOrderButton orderId={order.id} currentStatus={order.status} />
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        <ConfirmOrderButton
+                            orderId={order.id}
+                            currentStatus={order.status}
+                            shiprocketOrderId={order.shiprocket_order_id ?? null}
+                        />
+                        <CancelOrderButton orderId={order.id} currentStatus={order.status} />
+                    </div>
                 </div>
             </div>
 

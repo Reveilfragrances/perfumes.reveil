@@ -4,8 +4,6 @@ import OrderStatusBadge from '@/components/admin/OrderStatusBadge'
 import CancelOrderButton from '@/components/admin/CancelOrderButton'
 import { cn } from '@/lib/utils'
 import { Truck, ExternalLink, Printer, ShoppingBag } from 'lucide-react'
-import FulfillButton from '../../../../components/admin/FulfillButton'
-import AcceptOrderButton from '@/components/admin/AcceptOrderButton'
 import SyncStatusButton from '@/components/admin/SyncStatusButton'
 import OrdersAutoRefresh from '@/components/admin/OrdersAutoRefresh'
 import { getDisplayStatus } from '@/lib/utils/order-status'
@@ -168,10 +166,16 @@ export default async function AdminOrdersPage() {
                                                         <span className="text-xs text-gray-400 italic">In Shiprocket</span>
                                                     )}
                                                 </>
-                                            ) : String(order.status).toLowerCase() === 'pending' ? (
-                                                <AcceptOrderButton orderId={order.id} />
+                                            ) : ['cancelled', 'delivered', 'returned'].includes(String(order.status).toLowerCase()) ? (
+                                                <span className="text-xs text-gray-400 italic">—</span>
                                             ) : (
-                                                <FulfillButton orderId={order.id} isFulfilled={false} />
+                                                <Link
+                                                    href={`/static-v2-resource-policy-handler/orders/${order.id}`}
+                                                    className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-300 hover:text-white hover:bg-amber-600 hover:border-amber-600 transition-all whitespace-nowrap"
+                                                    title="Review the order details and confirm or cancel it"
+                                                >
+                                                    Review &amp; Confirm Order
+                                                </Link>
                                             )}
                                         </div>
                                     </td>

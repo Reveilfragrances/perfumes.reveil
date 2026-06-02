@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth/require'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isUuid } from '@/lib/validators'
 import { cancelShiprocketOrder } from '@/lib/shiprocket'
+import { triggerOrderCancellationEmail } from '@/lib/utils/email'
 
 /**
  * Admin "Cancel Order" endpoint.
@@ -79,8 +80,20 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         )
     }
 
+    // Notify the customer their order was cancelled. We only reach this point on
+    // the actual pending→cancelled transition (an already-cancelled order
+    // returns early above), so refreshing/repeating won't send a duplicate.
+    // A failed email never breaks the cancellation — it's logged and surfaced.
+    let emailWarning: string | null = null
+    const emailResult = await triggerOrderCancellationEmail(id)
+    if (!emailResult.ok) {
+        emailWarning = `Order cancelled, but the cancellation email was not sent (${emailResult.reason}).`
+        console.error('[admin cancel] Cancellation email not sent:', emailResult.reason)
+    }
+
     return NextResponse.json({
         success: true,
         ...(shiprocketWarning ? { warning: shiprocketWarning } : {}),
+        ...(emailWarning ? { emailWarning } : {}),
     })
 }

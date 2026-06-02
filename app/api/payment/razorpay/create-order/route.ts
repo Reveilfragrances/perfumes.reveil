@@ -4,7 +4,7 @@ import { getRazorpay, computeShipping } from '@/lib/razorpay'
 
 const isFlagOn = (v: unknown) => v === undefined || v === null || v === true
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isUuid, clampInt } from '@/lib/validators'
+import { isUuid, clampInt, isEmail } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
@@ -26,13 +26,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
         }
 
-        const { address_id, buy_now } = body as {
+        const { address_id, buy_now, email } = body as {
             address_id?: string
             buy_now?: { product_id: string; quantity: number }
+            email?: string
         }
 
         if (!isUuid(address_id)) {
             return NextResponse.json({ error: 'Invalid address_id' }, { status: 400 })
+        }
+
+        // Email is mandatory — the contact address for order communication.
+        const customerEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
+        if (!isEmail(customerEmail)) {
+            return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
         }
 
         let buyNowProductId: string | null = null
@@ -138,6 +145,17 @@ export async function POST(request: Request) {
         // Persist a snapshot that /verify (and the webhook) will load — this is
         // the ONLY trusted source of truth for what the user paid for.
         const admin = createAdminClient()
+
+        // Save the checkout email onto the profile so the post-approval order
+        // email reaches the address the customer entered at checkout.
+        const { error: emailSaveError } = await admin
+            .from('profiles')
+            .update({ email: customerEmail })
+            .eq('id', user.id)
+        if (emailSaveError) {
+            console.error('[razorpay] Failed to persist customer email (non-fatal):', emailSaveError.message)
+        }
+
         const { error: snapshotError } = await admin.from('pending_orders').insert({
             razorpay_order_id: rpOrderId,
             user_id: user.id,

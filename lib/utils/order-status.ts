@@ -35,13 +35,10 @@ export function getDisplayStatus(order: OrderForStatus | null | undefined): stri
     // Processing: pushed to Shiprocket but courier not assigned yet.
     if (order.shiprocket_order_id) return 'processing'
 
-    // Confirmed: payment captured (Razorpay) — order is ready for fulfilment.
-    if (order.payment_status === 'paid') return 'confirmed'
-
-    // COD orders sit in "pending" until the admin fulfils (which then pushes
-    // them to Shiprocket and they roll forward automatically).
-    if (raw === 'confirmed') return 'confirmed'
-    return raw || 'pending'
+    // Not yet pushed to Shiprocket → the order is awaiting admin review. This
+    // covers both COD ('pending') and paid Razorpay ('confirmed') orders: they
+    // only move forward once an admin reviews and confirms them in the panel.
+    return 'pending approval'
 }
 
 // Backwards-compatible alias for any caller still using the old name.

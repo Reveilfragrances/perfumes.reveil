@@ -1,5 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { triggerOrderConfirmationEmail } from '@/lib/utils/email'
 import { getRazorpay } from '@/lib/razorpay'
 
 export type FinalizeInput = {
@@ -156,10 +155,8 @@ export async function finaliseRazorpayOrder(input: FinalizeInput): Promise<Final
     }
   }
 
-  // Trigger confirmation email in the background
-  triggerOrderConfirmationEmail(orderId).catch(err => {
-    console.error('[finaliseRazorpayOrder] Email trigger failed:', err)
-  })
+  // No confirmation email here — it is sent only after an admin reviews and
+  // confirms the order in the admin panel.
 
   return { ok: true, orderId }
 }

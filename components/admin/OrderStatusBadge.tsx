@@ -2,6 +2,7 @@ import React from 'react'
 
 const statusStyles: Record<string, { bg: string, text: string, label: string }> = {
     pending: { bg: '#fffbeb', text: '#92400e', label: 'Pending' },
+    'pending approval': { bg: '#fff7ed', text: '#9a3412', label: 'Pending Approval' },
     processing: { bg: '#fffbeb', text: '#92400e', label: 'Processing' },
     confirmed: { bg: '#f0f9ff', text: '#075985', label: 'Confirmed' },
     shipped: { bg: '#f5f3ff', text: '#5b21b6', label: 'Shipped' },
