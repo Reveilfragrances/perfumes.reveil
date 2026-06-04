@@ -89,7 +89,7 @@ export default function ConfirmOrderButton({
             {status === 'loading' ? 'Confirming…'
                 : status === 'success' ? 'Confirmed'
                 : status === 'error' ? (error || 'Retry')
-                : 'Confirm & Ship Order'}
+                : 'Confirm'}
         </button>
     )
 }

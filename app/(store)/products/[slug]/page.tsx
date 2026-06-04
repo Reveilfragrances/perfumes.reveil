@@ -174,9 +174,19 @@ export default async function ProductExperiencePage({ params }: Props) {
                 : 'https://schema.org/OutOfStock',
             url: productUrl,
             priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            itemCondition: 'https://schema.org/NewCondition',
             seller: {
                 '@type': 'Organization',
                 name: BRAND_NAME,
+            },
+            // Resolves the Google Search Console "Missing field hasMerchantReturnPolicy" warning.
+            hasMerchantReturnPolicy: {
+                '@type': 'MerchantReturnPolicy',
+                applicableCountry: 'IN',
+                returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                merchantReturnDays: 7,
+                returnMethod: 'https://schema.org/ReturnByMail',
+                returnFees: 'https://schema.org/FreeReturn',
             },
             shippingDetails: {
                 '@type': 'OfferShippingDetails',

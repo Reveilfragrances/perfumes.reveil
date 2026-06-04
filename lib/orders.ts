@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { triggerOrderReceivedEmail } from '@/lib/utils/email'
 import { getRazorpay } from '@/lib/razorpay'
 
 export type FinalizeInput = {
@@ -155,8 +156,13 @@ export async function finaliseRazorpayOrder(input: FinalizeInput): Promise<Final
     }
   }
 
-  // No confirmation email here — it is sent only after an admin reviews and
-  // confirms the order in the admin panel.
+  // No confirmation email here — that is sent only after an admin reviews and
+  // confirms the order. We DO send the "order received — under review" email so
+  // the customer knows their paid order landed. This runs once per order (this
+  // is the non-idempotent path; idempotent re-entries returned earlier).
+  triggerOrderReceivedEmail(orderId).catch(err => {
+    console.error('[finaliseRazorpayOrder] Order received email failed (non-fatal):', err)
+  })
 
   return { ok: true, orderId }
 }

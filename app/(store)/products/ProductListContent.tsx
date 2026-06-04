@@ -102,7 +102,7 @@ export function ProductListContent() {
 
     const filteredAndSortedProducts = useMemo(() => {
         const selectedSlug = toSlug(selectedCategory)
-        let filtered = products.filter(p => {
+        const filtered = products.filter(p => {
             // Compare on slugified form so "reveil-mini-diffusers" (URL),
             // "REVEIL MINI DIFFUSERS" (sidebar click), and the stored
             // product.category "Reveil Mini Diffusers" all collide.

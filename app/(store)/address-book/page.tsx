@@ -126,6 +126,7 @@ export default function AddressBookPage() {
 
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || 'Failed to save address')
+            const savedAddressId: string | undefined = data.address?.id
 
             // Reload addresses
             const loadRes = await fetch('/api/user/address')
@@ -138,9 +139,13 @@ export default function AddressBookPage() {
             setForm(emptyForm)
 
             // Came from checkout → send the user straight back so they can
-            // continue placing their order without restarting checkout.
+            // continue placing their order without restarting checkout. Pass the
+            // new address id so checkout auto-selects it.
             if (returnTo) {
-                router.push(returnTo)
+                const dest = savedAddressId
+                    ? `${returnTo}${returnTo.includes('?') ? '&' : '?'}newAddressId=${savedAddressId}`
+                    : returnTo
+                router.push(dest)
                 return
             }
         } catch (err: any) {

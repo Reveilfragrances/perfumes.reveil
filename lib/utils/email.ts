@@ -318,6 +318,12 @@ export async function sendOrderFulfilledEmail(order: any, userEmail: string) {
                         <p style="color: #fff; font-size: 14px; margin: 0;">3 – 7 business days</p>
                     </div>
 
+                    <!-- Invoice -->
+                    <div style="text-align: center; margin-bottom: 28px;">
+                        <a href="${SITE_URL}/api/orders/${id}/invoice" style="display: inline-block; border: 1px solid #d4af37; color: #d4af37; text-decoration: none; padding: 12px 30px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; border-radius: 2px;">Download Invoice (PDF)</a>
+                        <p style="color: #555; font-size: 10px; margin: 10px 0 0;">Sign in with this email to view your tax invoice.</p>
+                    </div>
+
                     <!-- Footer -->
                     <div style="text-align: center; border-top: 1px solid #1a1a1a; padding-top: 32px; color: #555; font-size: 11px;">
                         <p style="margin: 0 0 14px; line-height: 1.7;">Questions about your delivery? Reply to this email or visit our <a href="${SITE_URL}/orders" style="color: #d4af37; text-decoration: none;">order portal</a>.</p>
@@ -565,6 +571,148 @@ export async function triggerOrderConfirmationEmail(orderId: string) {
         }
     } catch (err) {
         console.error('[triggerOrderConfirmationEmail] Error:', err);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ORDER RECEIVED EMAIL (Email 1)
+// Sent immediately after the customer places an order. This is NOT the
+// confirmation — the order is "under review" until an admin approves it. No
+// tracking and no invoice yet (neither exists until admin confirms).
+// ────────────────────────────────────────────────────────────────────────────
+export async function sendOrderReceivedEmail(order: any, userEmail: string) {
+    const { id, total, order_items, profiles } = order
+    const customerName = profiles?.full_name || 'Valued Customer'
+
+    if (!resend) {
+        console.log('--- MOCK ORDER RECEIVED START ---')
+        console.log(`To: ${userEmail}`)
+        console.log(`Subject: REVEIL | We've received your order [${id.slice(0, 8)}]`)
+        console.log('--- MOCK ORDER RECEIVED END ---')
+        return { success: true, mocked: true }
+    }
+
+    try {
+        const itemsHtml = (order_items || []).map((item: any) => `
+            <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
+                    <p style="margin: 0; color: #fff; font-size: 14px; font-weight: 500;">${item.products?.name || 'Item'}</p>
+                    <p style="margin: 4px 0 0; color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;">Quantity: ${item.quantity}</p>
+                </td>
+                <td style="padding: 12px 0; border-bottom: 1px solid #1a1a1a; text-align: right; color: #d4af37; font-weight: 500;">
+                    ₹${(item.price ?? 0).toLocaleString()}
+                </td>
+            </tr>
+        `).join('')
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_ADDRESS,
+            to: userEmail,
+            subject: `REVEIL | We've received your order [${id.slice(0, 8).toUpperCase()}]`,
+            html: `
+                <div style="background-color: #050505; color: #fff; font-family: 'Baskerville', 'Georgia', serif; padding: 40px; max-width: 600px; margin: 0 auto; border: 1px solid #1a1a1a;">
+                    <div style="text-align: center; margin-bottom: 50px;">
+                        <h1 style="color: #d4af37; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase; margin: 0; font-size: 28px;">REVEIL</h1>
+                        <p style="color: #666; font-size: 10px; letter-spacing: 0.5em; margin-top: 12px; text-transform: uppercase;">The Art of Presence</p>
+                    </div>
+
+                    <div style="margin-bottom: 40px; text-align: center;">
+                        <h2 style="font-weight: 300; font-size: 22px; color: #fff; text-transform: uppercase; letter-spacing: 0.1em;">Order Received</h2>
+                        <div style="width: 30px; height: 1px; background: #d4af37; margin: 15px auto;"></div>
+                        <p style="display: inline-block; margin: 8px 0 0; padding: 6px 16px; background: rgba(212,175,55,0.12); color: #d4af37; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; border-radius: 999px;">Under Review — we'll notify you once confirmed</p>
+                        <p style="color: #888; font-size: 14px; line-height: 1.8; margin-top: 20px;">
+                            Dear ${customerName},<br><br>
+                            Thank you for your order from the REVEIL Archive. We've received it and our team is reviewing it now. You'll receive a confirmation email with tracking details as soon as it's approved.
+                        </p>
+                    </div>
+
+                    <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 25px; margin-bottom: 40px;">
+                        <h3 style="color: #d4af37; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; margin: 0 0 20px; font-weight: 400;">Your Selection</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td style="padding: 25px 0 0; color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em;">Order Total</td>
+                                    <td style="padding: 25px 0 0; text-align: right; color: #d4af37; font-size: 20px; font-weight: 600;">₹${(total ?? 0).toLocaleString()}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div style="margin-bottom: 40px;">
+                        <p style="color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px;">Order Reference</p>
+                        <p style="color: #fff; font-size: 12px; margin: 0; font-family: monospace;">#${id.toUpperCase().slice(0, 12)}</p>
+                    </div>
+
+                    <div style="text-align: center; border-top: 1px solid #1a1a1a; padding-top: 40px; color: #444; font-size: 11px;">
+                        <p style="margin-bottom: 15px;">We'll be in touch shortly. Questions? Reply to this email.</p>
+                        <div style="margin-top: 30px;">
+                            <p style="letter-spacing: 0.3em; text-transform: uppercase; color: #666;">${SITE_HOST}</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        })
+
+        if (error) {
+            console.error('[sendOrderReceivedEmail] Resend error:', error)
+            return { success: false, error }
+        }
+        return { success: true, data }
+    } catch (err) {
+        console.error('[sendOrderReceivedEmail] Dispatch error:', err)
+        return { success: false, error: err }
+    }
+}
+
+/**
+ * Fetch the order + customer email and send the "order received" email. Called
+ * right after an order is created (COD and paid Razorpay). Errors are logged,
+ * never thrown, so a failed email never breaks order placement.
+ */
+export async function triggerOrderReceivedEmail(orderId: string): Promise<EmailTriggerResult> {
+    try {
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const admin = createAdminClient()
+
+        const { data: order } = await admin
+            .from('orders')
+            .select(`
+                id,
+                total,
+                user_id,
+                profiles ( full_name, email ),
+                order_items ( quantity, price, products ( name ) )
+            `)
+            .eq('id', orderId)
+            .single()
+
+        if (!order) {
+            console.error('[triggerOrderReceivedEmail] Order not found:', orderId)
+            return { ok: false, sent: false, reason: 'order_not_found' }
+        }
+
+        const profile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles
+        const email = await resolveUserEmail(order.user_id, profile?.email)
+        if (!email) {
+            console.warn('[triggerOrderReceivedEmail] No usable email — skipping send')
+            return { ok: false, sent: false, reason: 'no_customer_email' }
+        }
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('[triggerOrderReceivedEmail] RESEND_API_KEY missing — email mocked')
+            return { ok: false, sent: false, reason: 'resend_not_configured' }
+        }
+
+        const result = await sendOrderReceivedEmail({ ...order, profiles: profile }, email)
+        if (!result.success) {
+            return { ok: false, sent: false, reason: (result as any).error?.message || 'email_send_failed' }
+        }
+        return { ok: true, sent: true, mocked: (result as any).mocked }
+    } catch (err: any) {
+        console.error('[triggerOrderReceivedEmail] Error:', err?.message || err)
+        return { ok: false, sent: false, reason: err?.message || 'unknown_error' }
     }
 }
 

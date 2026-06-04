@@ -9,13 +9,18 @@ import OrdersAutoRefresh from '@/components/admin/OrdersAutoRefresh'
 import { getDisplayStatus } from '@/lib/utils/order-status'
 import PageHeader from '../_components/PageHeader'
 
-export default async function AdminOrdersPage() {
+export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ userId?: string }> }) {
     const supabase = await createClient()
 
-    const { data: orders, error } = await supabase
+    // Optional per-user filter — set when an admin clicks "View Orders" for a
+    // specific user in the User Registry. Absent → all orders (unchanged).
+    const { userId } = await searchParams
+
+    let ordersQuery = supabase
         .from('orders')
         .select(`
             id,
+            user_id,
             total,
             status,
             payment_status,
@@ -27,10 +32,15 @@ export default async function AdminOrdersPage() {
             label_url,
             courier_name,
             shiprocket_order_id,
-            profiles(full_name, phone),
+            shipping_address,
+            profiles(full_name, first_name, last_name, phone, email),
             order_items(quantity, products(name))
         `)
         .order('created_at', { ascending: false })
+
+    if (userId) ordersQuery = ordersQuery.eq('user_id', userId)
+
+    const { data: orders, error } = await ordersQuery
 
     return (
         <div className="space-y-10">
@@ -44,6 +54,25 @@ export default async function AdminOrdersPage() {
                     <span className="text-base font-extrabold text-black">{orders?.length ?? 0}</span>
                 </div>
             </PageHeader>
+
+            {userId && (
+                <div className="bg-amber-50 px-5 py-3 rounded-2xl border border-amber-200 flex items-center justify-between gap-3 text-amber-800">
+                    <span className="text-sm font-bold">
+                        Showing orders for one customer only
+                        {orders?.[0] && (
+                            <span className="font-extrabold">
+                                {' '}— {(Array.isArray(orders[0].profiles) ? orders[0].profiles[0] : orders[0].profiles as any)?.full_name
+                                    || (Array.isArray(orders[0].profiles) ? orders[0].profiles[0] : orders[0].profiles as any)?.first_name
+                                    || ((orders[0].shipping_address as any)?.full_name)
+                                    || ''}
+                            </span>
+                        )}
+                    </span>
+                    <Link href="/static-v2-resource-policy-handler/orders" className="text-[11px] font-extrabold uppercase tracking-wider text-amber-900 underline hover:text-black">
+                        Clear filter
+                    </Link>
+                </div>
+            )}
 
             {error && (
                 <div className="bg-red-50 p-5 rounded-2xl border border-red-100 flex items-center gap-3 text-red-600">
@@ -69,6 +98,15 @@ export default async function AdminOrdersPage() {
                     <tbody className="divide-y divide-gray-100">
                         {orders?.map((order: any) => {
                             const profile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles as any
+                            const addr = (order.shipping_address as any) || {}
+                            // Fallback chain so a registered user never shows as "Guest":
+                            // profile name → name-parts → snapshot in shipping_address → Guest.
+                            const customerName =
+                                profile?.full_name
+                                || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim()
+                                || addr.full_name
+                                || 'Guest'
+                            const customerPhone = profile?.phone || addr.phone || '—'
                             const displayStatus = getDisplayStatus(order)
                             return (
                                 <tr key={order.id} className="group hover:bg-[#fbfaf7] transition-colors align-middle">
@@ -85,10 +123,10 @@ export default async function AdminOrdersPage() {
                                     {/* Customer */}
                                     <td className="px-6 py-6">
                                         <div className="text-sm font-extrabold text-gray-900 truncate">
-                                            {profile?.full_name ?? 'Guest'}
+                                            {customerName}
                                         </div>
                                         <div className="text-xs text-gray-600 mt-1 font-semibold truncate">
-                                            {profile?.phone ?? '—'}
+                                            {customerPhone}
                                         </div>
                                     </td>
 
@@ -174,7 +212,7 @@ export default async function AdminOrdersPage() {
                                                     className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-300 hover:text-white hover:bg-amber-600 hover:border-amber-600 transition-all whitespace-nowrap"
                                                     title="Review the order details and confirm or cancel it"
                                                 >
-                                                    Review &amp; Confirm Order
+                                                    Review
                                                 </Link>
                                             )}
                                         </div>

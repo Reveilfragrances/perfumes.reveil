@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -71,9 +72,9 @@ export default function AdminLogin() {
                 <p style={{ color: '#888', fontSize: '18px', marginTop: '-20px' }}>
                     The page you are looking for does not exist.
                 </p>
-                <a href="/" style={{ color: '#000', textDecoration: 'none', borderBottom: '1px solid #000', marginTop: '20px', fontSize: '14px' }}>
+                <Link href="/" style={{ color: '#000', textDecoration: 'none', borderBottom: '1px solid #000', marginTop: '20px', fontSize: '14px' }}>
                     Return to home
-                </a>
+                </Link>
             </div>
         )
     }

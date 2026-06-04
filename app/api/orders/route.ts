@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth/require'
 import { isUuid, clampInt, isEmail } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { computeShipping } from '@/lib/razorpay'
+import { triggerOrderReceivedEmail } from '@/lib/utils/email'
 import { NextResponse } from 'next/server'
 
 const COD_MAX_TOTAL_INR = 5000
@@ -258,7 +259,11 @@ export async function POST(request: Request) {
     // NOTE: The order is intentionally left in "pending approval" — we do NOT
     // push to Shiprocket or send a confirmation email here. That happens only
     // after an admin reviews and confirms the order from the admin panel
-    // (see /api/shiprocket/create-order).
+    // (see /api/shiprocket/create-order). We DO send the "order received —
+    // under review" email so the customer knows it landed.
+    triggerOrderReceivedEmail(orderId as string).catch((err) => {
+        console.error('[orders] Order received email failed (non-fatal):', err?.message)
+    })
 
     return NextResponse.json(fullOrder, { status: 201 })
 }

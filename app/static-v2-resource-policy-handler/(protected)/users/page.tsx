@@ -113,7 +113,7 @@ export default async function UsersPage() {
                                     <td className="px-5 py-5 text-right">
                                         {profile.orders?.length > 0 ? (
                                             <Link
-                                                href={`/static-v2-resource-policy-handler/orders?search=${profile.phone}`}
+                                                href={`/static-v2-resource-policy-handler/orders?userId=${profile.id}`}
                                                 className="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-[#8a6d18] hover:text-black transition-colors"
                                             >
                                                 View orders <ArrowRight className="w-3.5 h-3.5" />

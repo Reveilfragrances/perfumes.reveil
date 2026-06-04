@@ -67,6 +67,9 @@ function CheckoutInner() {
     const buyNowProductId = searchParams.get('buyNow')
     const buyNowQty = Math.max(1, parseInt(searchParams.get('qty') || '1', 10))
     const isBuyNow = !!buyNowProductId
+    // Set when returning from the address book after adding a new address — so we
+    // auto-select it instead of defaulting back to the previous default address.
+    const newAddressId = searchParams.get('newAddressId')
     const supabase = createClient()
 
     const [loading, setLoading] = useState(true)
@@ -139,7 +142,10 @@ function CheckoutInner() {
 
                 const addrs: Address[] = addrData.addresses || []
                 setAddresses(addrs)
-                const def = addrs.find((a) => a.is_default) || addrs[0]
+                // Prefer a just-added address (returned from the address book),
+                // then the default, then the first available.
+                const justAdded = newAddressId ? addrs.find((a) => a.id === newAddressId) : undefined
+                const def = justAdded || addrs.find((a) => a.is_default) || addrs[0]
                 if (def) setSelectedAddressId(def.id)
             } catch (err) {
                 console.error('Checkout load error:', err)

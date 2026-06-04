@@ -28,7 +28,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             created_at,
             profiles (
                 full_name,
-                phone
+                first_name,
+                last_name,
+                phone,
+                email
             ),
             order_items (
                 id,
@@ -49,6 +52,22 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
     // Calculate subtotal from items
     const subtotal = order.order_items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0)
+
+    // Customer identity — fallback chain so registered users never show "Guest".
+    const orderProfile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles as any
+    const addr = (order.shipping_address as any) || {}
+    const displayName =
+        orderProfile?.full_name
+        || [orderProfile?.first_name, orderProfile?.last_name].filter(Boolean).join(' ').trim()
+        || addr.full_name
+        || 'Guest'
+    const displayPhone = orderProfile?.phone || addr.phone || '—'
+    const displayEmail = orderProfile?.email || addr.email || '—'
+
+    // Full shipping address — read every saved field, not just city/state/pincode.
+    const addrLine1 = addr.address_line1 || addr.line1 || addr.address || ''
+    const addrLine2 = addr.address_line2 || addr.line2 || ''
+    const addrCityStatePin = [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ')
 
     return (
         <div style={{ maxWidth: '1000px' }}>
@@ -136,10 +155,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         }}>
                             {typeof order.shipping_address === 'string' ? order.shipping_address : (
                                 <div>
-                                    <div style={{ fontWeight: 600 }}>{(order.shipping_address as any).full_name}</div>
-                                    <div>{(order.shipping_address as any).address}</div>
-                                    <div>{(order.shipping_address as any).city}, {(order.shipping_address as any).state} {(order.shipping_address as any).pincode}</div>
-                                    <div style={{ marginTop: '4px' }}>Phone: {(order.shipping_address as any).phone}</div>
+                                    <div style={{ fontWeight: 600 }}>{addr.full_name || displayName}</div>
+                                    {addrLine1 && <div>{addrLine1}</div>}
+                                    {addrLine2 && <div>{addrLine2}</div>}
+                                    {addrCityStatePin && <div>{addrCityStatePin}</div>}
+                                    <div>India</div>
+                                    <div style={{ marginTop: '4px' }}>Phone: {addr.phone || displayPhone}</div>
                                 </div>
                             )}
                         </div>
@@ -152,10 +173,13 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px', color: '#1e293b' }}>Customer</h2>
                         <div>
                             <div style={{ fontWeight: 600, color: '#334155', fontSize: '16px' }}>
-                                {Array.isArray(order.profiles) ? (order.profiles[0] as any)?.full_name : (order.profiles as any)?.full_name ?? 'Guest'}
+                                {displayName}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#64748b', marginTop: '4px' }}>
+                                {displayEmail}
                             </div>
                             <div style={{ fontSize: '14px', color: '#64748b', marginTop: '2px' }}>
-                                {Array.isArray(order.profiles) ? (order.profiles[0] as any)?.phone : (order.profiles as any)?.phone ?? 'No phone provided'}
+                                {displayPhone}
                             </div>
                         </div>
                     </div>
