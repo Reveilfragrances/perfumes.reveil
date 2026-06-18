@@ -6,6 +6,7 @@ const isFlagOn = (v: unknown) => v === undefined || v === null || v === true
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isUuid, clampInt, isEmail } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
+import { validateAndComputeCoupon } from '@/lib/coupons'
 
 export async function POST(request: Request) {
     try {
@@ -26,10 +27,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
         }
 
-        const { address_id, buy_now, email } = body as {
+        const { address_id, buy_now, email, coupon_code } = body as {
             address_id?: string
             buy_now?: { product_id: string; quantity: number }
             email?: string
+            coupon_code?: string | null
         }
 
         if (!isUuid(address_id)) {
@@ -125,7 +127,21 @@ export async function POST(request: Request) {
         // Razorpay path is online payment ('prepaid' / 'razorpay'). Below
         // ₹250 threshold customers pay ₹60 shipping — the cheaper rate.
         const shippingFee = computeShipping(subtotal, 'razorpay', applyFee)
-        const total = subtotal + shippingFee
+
+        // Coupon — re-validated server-side so the discount can't be faked.
+        let couponId: string | null = null
+        let couponCode: string | null = null
+        let couponDiscount = 0
+        if (coupon_code) {
+            const couponResult = await validateAndComputeCoupon({ code: coupon_code, subtotal, userId: user.id })
+            if (couponResult.ok) {
+                couponId = couponResult.couponId
+                couponCode = couponResult.code
+                couponDiscount = couponResult.discount
+            }
+        }
+
+        const total = Math.max(subtotal - couponDiscount + shippingFee, 0)
 
         const razorpay = getRazorpay()
         const rpOrder = await razorpay.orders.create({
@@ -171,6 +187,9 @@ export async function POST(request: Request) {
             expected_amount_paise: Math.round(total * 100),
             currency: 'INR',
             status: 'created',
+            // Only include coupon fields when a coupon was actually applied, so
+            // the default insert is unchanged for stores that haven't migrated.
+            ...(couponId ? { coupon_id: couponId, coupon_code: couponCode, coupon_discount: couponDiscount } : {}),
         })
         if (snapshotError) {
             // Log full Supabase error context — code/details/hint usually pinpoint

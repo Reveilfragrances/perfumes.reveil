@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { triggerOrderReceivedEmail } from '@/lib/utils/email'
+import { triggerOrderReceivedEmail, triggerAdminOrderNotification } from '@/lib/utils/email'
+import { incrementCouponUsage } from '@/lib/coupons'
 import { getRazorpay } from '@/lib/razorpay'
 
 export type FinalizeInput = {
@@ -143,6 +144,24 @@ export async function finaliseRazorpayOrder(input: FinalizeInput): Promise<Final
       .eq('id', orderId)
   }
 
+  // Carry the coupon (if any) from the snapshot onto the order and bump usage.
+  // Best-effort: a missing coupon column (pre-migration) must not break the order.
+  if (pending.coupon_id && Number(pending.coupon_discount) > 0) {
+    const { error: couponSaveError } = await admin
+      .from('orders')
+      .update({
+        coupon_id: pending.coupon_id,
+        coupon_code: pending.coupon_code,
+        coupon_discount: Number(pending.coupon_discount),
+      })
+      .eq('id', orderId)
+    if (couponSaveError) {
+      console.error('[finaliseRazorpayOrder] Failed to persist coupon (non-fatal):', couponSaveError.message)
+    } else {
+      await incrementCouponUsage(pending.coupon_id)
+    }
+  }
+
   // Clear the cart for cart-checkout flows. Buy-now flows shouldn't touch
   // the cart (the customer hadn't added the item there). We detect buy-now
   // via the snapshot column that create-order populated.
@@ -162,6 +181,10 @@ export async function finaliseRazorpayOrder(input: FinalizeInput): Promise<Final
   // is the non-idempotent path; idempotent re-entries returned earlier).
   triggerOrderReceivedEmail(orderId).catch(err => {
     console.error('[finaliseRazorpayOrder] Order received email failed (non-fatal):', err)
+  })
+  // Notify the store owner of the new paid order.
+  triggerAdminOrderNotification(orderId).catch(err => {
+    console.error('[finaliseRazorpayOrder] Admin order notification failed (non-fatal):', err)
   })
 
   return { ok: true, orderId }

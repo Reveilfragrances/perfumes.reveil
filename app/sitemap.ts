@@ -6,18 +6,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = await createClient()
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || SITE_URL).replace(/\/$/, '')
 
-    // 1. All product slugs — highest SEO value, weekly refresh
+    // 1. All product slugs — highest SEO value, weekly refresh. Include the
+    //    primary product image so Google Images can index it (image sitemap).
     const { data: products } = await supabase
         .from('products')
-        .select('slug, updated_at')
+        .select('slug, updated_at, images')
         .order('updated_at', { ascending: false })
 
-    const productEntries: MetadataRoute.Sitemap = (products || []).map((product) => ({
-        url: `${baseUrl}/products/${product.slug}`,
-        lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.9,
-    }))
+    const productEntries: MetadataRoute.Sitemap = (products || []).map((product) => {
+        const firstImage = Array.isArray(product.images) ? product.images[0] : undefined
+        const absoluteImage = typeof firstImage === 'string' && /^https?:\/\//i.test(firstImage)
+            ? firstImage
+            : undefined
+        return {
+            url: `${baseUrl}/products/${product.slug}`,
+            lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+            ...(absoluteImage ? { images: [absoluteImage] } : {}),
+        }
+    })
 
     // 2. Category landing pages — high-traffic listing pages
     const categories = [

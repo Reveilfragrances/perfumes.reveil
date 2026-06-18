@@ -15,7 +15,8 @@ import {
     TrendingUp,
     LogOut,
     ExternalLink,
-    Mail
+    Mail,
+    Ticket
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -30,6 +31,7 @@ const navItems = [
     { href: '/static-v2-resource-policy-handler/carousel', label: 'Carousel', icon: ImageIcon },
     { href: '/static-v2-resource-policy-handler/collections', label: 'Collections', icon: Sparkles },
     { href: '/static-v2-resource-policy-handler/trending', label: 'Trending', icon: TrendingUp },
+    { href: '/static-v2-resource-policy-handler/coupons', label: 'Coupons', icon: Ticket },
     { href: '/static-v2-resource-policy-handler/inquiries', label: 'Inquiries', icon: Mail, hasBadge: true },
 ]
 

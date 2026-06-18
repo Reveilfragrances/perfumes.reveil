@@ -944,9 +944,184 @@ function escapeHtml(s: string): string {
         .replace(/'/g, '&#39;')
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// NEW ORDER → ADMIN NOTIFICATION
+// Sent to the store owner the moment a customer places an order (COD or paid
+// Razorpay) so they can review and process it from the admin panel. Best-effort:
+// errors are logged, never thrown, so a failed admin email never blocks an order.
+// ────────────────────────────────────────────────────────────────────────────
+export async function sendAdminOrderNotificationEmail(order: any) {
+    const adminEmail = process.env.ADMIN_ORDER_EMAIL || 'reveilfragrances@gmail.com'
+    const {
+        id,
+        total,
+        created_at,
+        payment_method,
+        payment_status,
+        shipping_cost,
+        coupon_code,
+        coupon_discount,
+        shipping_address,
+        order_items,
+        profiles,
+    } = order
+
+    const profile = Array.isArray(profiles) ? profiles[0] : profiles
+    const addr = shipping_address || {}
+    const customerName = profile?.full_name || addr.full_name || 'Customer'
+    const customerEmail = profile?.email || addr.email || '—'
+    const customerPhone = profile?.phone || addr.phone || '—'
+    const adminPanelUrl = `${SITE_URL}/static-v2-resource-policy-handler/orders/${id}`
+    const orderDate = new Date(created_at || Date.now()).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    })
+    const subtotal = (order_items || []).reduce(
+        (sum: number, it: any) => sum + (it.price ?? 0) * (it.quantity ?? 0),
+        0
+    )
+
+    if (!resend) {
+        console.log('--- MOCK ADMIN ORDER NOTIFICATION ---')
+        console.log(`To: ${adminEmail}`)
+        console.log(`Subject: 🛍️ New Order #${String(id).slice(0, 8).toUpperCase()} — ₹${total} — ${customerName}`)
+        return { success: true, mocked: true }
+    }
+
+    try {
+        const itemsHtml = (order_items || []).map((item: any) => `
+            <tr>
+                <td style="padding:8px; border-bottom:1px solid #eee;">${escapeHtml(item.products?.name || 'Item')}</td>
+                <td style="padding:8px; border-bottom:1px solid #eee; text-align:center;">${item.quantity}</td>
+                <td style="padding:8px; border-bottom:1px solid #eee; text-align:right;">₹${((item.price ?? 0) * (item.quantity ?? 0)).toLocaleString()}</td>
+            </tr>
+        `).join('')
+
+        const addrLine1 = addr.address_line1 || addr.line1 || addr.address || ''
+        const addrLine2 = addr.address_line2 || addr.line2 || ''
+        const addrCityStatePin = [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ')
+
+        const { data, error } = await resend.emails.send({
+            from: FROM_ADDRESS,
+            to: adminEmail,
+            subject: `🛍️ New Order #${String(id).slice(0, 8).toUpperCase()} — ₹${(total ?? 0).toLocaleString()} — ${customerName}`,
+            html: `
+                <div style="font-family:Arial,sans-serif; max-width:640px; margin:0 auto; color:#1a1a1a;">
+                    <div style="background:#1a1a1a; padding:20px; text-align:center;">
+                        <h1 style="color:#d4af37; margin:0; font-size:20px;">🛍️ New Order Received — Reveil Fragrance</h1>
+                    </div>
+                    <div style="background:#fff9f0; padding:20px; border-bottom:2px solid #d4af37;">
+                        <p style="margin:0; font-size:15px; color:#333;">A new order has been placed. Please log in to the admin panel to review and process it.</p>
+                        <a href="${adminPanelUrl}" style="display:inline-block; margin-top:16px; background:#1a1a1a; color:#d4af37; padding:12px 24px; border-radius:6px; text-decoration:none; font-weight:bold;">View Order in Admin Panel →</a>
+                    </div>
+                    <div style="padding:20px; background:#fff;">
+                        <h2 style="font-size:15px; border-bottom:1px solid #eee; padding-bottom:8px;">Order Summary</h2>
+                        <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                            <tr><td style="color:#666; padding:4px 0;">Order ID</td><td style="text-align:right; font-weight:bold;">#${String(id).substring(0, 8).toUpperCase()}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0;">Date</td><td style="text-align:right;">${orderDate}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0;">Payment Method</td><td style="text-align:right; text-transform:uppercase;">${escapeHtml(String(payment_method || '—'))}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0;">Payment Status</td><td style="text-align:right; font-weight:bold; color:${payment_status === 'paid' ? 'green' : 'orange'};">${escapeHtml(String(payment_status || '—').toUpperCase())}</td></tr>
+                        </table>
+
+                        <h2 style="font-size:15px; border-bottom:1px solid #eee; padding-bottom:8px; margin-top:20px;">Customer</h2>
+                        <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                            <tr><td style="color:#666; padding:4px 0;">Name</td><td style="text-align:right;">${escapeHtml(customerName)}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0;">Email</td><td style="text-align:right;">${escapeHtml(customerEmail)}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0;">Phone</td><td style="text-align:right;">${escapeHtml(customerPhone)}</td></tr>
+                            <tr><td style="color:#666; padding:4px 0; vertical-align:top;">Address</td><td style="text-align:right;">
+                                ${escapeHtml(addrLine1)}${addrLine2 ? '<br>' + escapeHtml(addrLine2) : ''}<br>${escapeHtml(addrCityStatePin)}
+                            </td></tr>
+                        </table>
+
+                        <h2 style="font-size:15px; border-bottom:1px solid #eee; padding-bottom:8px; margin-top:20px;">Items</h2>
+                        <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                            <thead><tr style="background:#f5f5f5;">
+                                <th style="text-align:left; padding:8px;">Product</th>
+                                <th style="text-align:center; padding:8px;">Qty</th>
+                                <th style="text-align:right; padding:8px;">Price</th>
+                            </tr></thead>
+                            <tbody>${itemsHtml}</tbody>
+                        </table>
+
+                        <table style="width:100%; font-size:14px; margin-top:12px; border-collapse:collapse;">
+                            <tr><td style="color:#666; padding:4px 0;">Subtotal</td><td style="text-align:right;">₹${subtotal.toLocaleString()}</td></tr>
+                            ${coupon_code ? `<tr><td style="color:#16a34a; padding:4px 0;">Coupon (${escapeHtml(String(coupon_code))})</td><td style="text-align:right; color:#16a34a;">−₹${Number(coupon_discount || 0).toLocaleString()}</td></tr>` : ''}
+                            <tr><td style="color:#666; padding:4px 0;">Shipping</td><td style="text-align:right;">${!shipping_cost || Number(shipping_cost) === 0 ? 'FREE' : '₹' + Number(shipping_cost).toLocaleString()}</td></tr>
+                            <tr style="border-top:2px solid #1a1a1a;"><td style="font-weight:bold; padding:8px 0; font-size:15px;">Total</td><td style="text-align:right; font-weight:bold; font-size:15px;">₹${(total ?? 0).toLocaleString()}</td></tr>
+                        </table>
+                    </div>
+                    <div style="background:#f5f5f5; padding:16px; text-align:center; font-size:12px; color:#666;">
+                        Sent automatically by the Reveil Fragrance order system. Manage orders at ${SITE_HOST}.
+                    </div>
+                </div>
+            `,
+        })
+
+        if (error) {
+            console.error('[sendAdminOrderNotificationEmail] Resend error:', error)
+            return { success: false, error }
+        }
+        return { success: true, data }
+    } catch (err) {
+        console.error('[sendAdminOrderNotificationEmail] Dispatch error:', err)
+        return { success: false, error: err }
+    }
+}
+
+/**
+ * Fetch the order with everything the admin notification needs and send it.
+ * Called right after an order is created (COD and paid Razorpay). Errors are
+ * logged, never thrown, so a failed email never breaks order placement.
+ */
+export async function triggerAdminOrderNotification(orderId: string): Promise<EmailTriggerResult> {
+    try {
+        const { createAdminClient } = await import('@/lib/supabase/admin')
+        const admin = createAdminClient()
+
+        const { data: order } = await admin
+            .from('orders')
+            .select(`
+                *,
+                profiles ( full_name, email, phone ),
+                order_items ( quantity, price, products ( name ) )
+            `)
+            .eq('id', orderId)
+            .single()
+
+        if (!order) {
+            console.error('[triggerAdminOrderNotification] Order not found:', orderId)
+            return { ok: false, sent: false, reason: 'order_not_found' }
+        }
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('[triggerAdminOrderNotification] RESEND_API_KEY missing — email mocked')
+            return { ok: false, sent: false, reason: 'resend_not_configured' }
+        }
+
+        const result = await sendAdminOrderNotificationEmail(order)
+        if (!result.success) {
+            return { ok: false, sent: false, reason: (result as any).error?.message || 'email_send_failed' }
+        }
+        return { ok: true, sent: true, mocked: (result as any).mocked }
+    } catch (err: any) {
+        console.error('[triggerAdminOrderNotification] Error:', err?.message || err)
+        return { ok: false, sent: false, reason: err?.message || 'unknown_error' }
+    }
+}
+
 export async function sendAdminCredentialsEmail(recipientEmail: string) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) return { success: true, mocked: true };
+
+    // Credentials are read from the environment — never hardcoded in source.
+    // Set ADMIN_PANEL_EMAIL and ADMIN_PANEL_PASSWORD to enable this email.
+    const adminPanelEmail = process.env.ADMIN_PANEL_EMAIL;
+    const adminPanelPassword = process.env.ADMIN_PANEL_PASSWORD;
+    if (!adminPanelEmail || !adminPanelPassword) {
+        console.warn('[sendAdminCredentialsEmail] ADMIN_PANEL_EMAIL / ADMIN_PANEL_PASSWORD not set — skipping send');
+        return { success: false, reason: 'admin_credentials_not_configured' };
+    }
+
     const { Resend } = await import('resend');
     const resend = new Resend(resendApiKey);
 
@@ -971,8 +1146,8 @@ export async function sendAdminCredentialsEmail(recipientEmail: string) {
                         <p style="margin: 0 0 25px; color: #fff; font-size: 14px;">${SITE_URL}/static-v2-resource-policy-handler/login</p>
                         
                         <p style="margin: 0 0 10px; color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;">Credentials</p>
-                        <p style="margin: 0; color: #fff; font-size: 14px;"><strong>Email:</strong> reveilfragrances@gmail.com</p>
-                        <p style="margin: 8px 0 0; color: #fff; font-size: 14px;"><strong>Password:</strong> BalajISaanU1095#</p>
+                        <p style="margin: 0; color: #fff; font-size: 14px;"><strong>Email:</strong> ${escapeHtml(adminPanelEmail)}</p>
+                        <p style="margin: 8px 0 0; color: #fff; font-size: 14px;"><strong>Password:</strong> ${escapeHtml(adminPanelPassword)}</p>
                     </div>
                     
                     <p style="color: #444; font-size: 11px; font-style: italic; border-top: 1px solid #1a1a1a; padding-top: 20px;">

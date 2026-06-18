@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/require'
 import { NextResponse } from 'next/server'
 import { notifyGoogleOfChange } from '@/lib/utils/indexing'
+import { upsertMerchantProduct, deleteMerchantProduct } from '@/lib/google-sync'
 import { SITE_URL } from '@/lib/seo/keywords'
 
 type Params = Promise<{ id: string }>
@@ -65,6 +66,9 @@ export async function PUT(req: Request, { params }: { params: Params }) {
     } catch (err) {
         console.error('Indexing API Error:', err)
     }
+    upsertMerchantProduct(data).catch((err) =>
+        console.error('Failed to sync product to Merchant Center:', err)
+    )
 
     return NextResponse.json(data)
 }
@@ -74,12 +78,29 @@ export async function DELETE(_req: Request, { params }: { params: Params }) {
     const auth = await requireAdmin()
     if (!auth.ok) return auth.response
 
+    // Read the row before deleting so we can de-list it from Merchant Center
+    // and tell Google to drop the URL afterwards.
+    const { data: existing } = await auth.supabase
+        .from('products')
+        .select('id, slug')
+        .eq('id', id)
+        .single()
+
     const { error } = await auth.supabase
         .from('products')
         .delete()
         .eq('id', id)
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    if (existing) {
+        deleteMerchantProduct(existing).catch((err) =>
+            console.error('Failed to remove product from Merchant Center:', err)
+        )
+        notifyGoogleOfChange(`${SITE_URL}/products/${existing.slug}`, 'URL_DELETED').catch((err) =>
+            console.error('Indexing API Error:', err)
+        )
+    }
 
     return NextResponse.json({ success: true })
 }

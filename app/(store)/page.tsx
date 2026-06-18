@@ -9,6 +9,7 @@ import { InfiniteIconCarousel } from '@/components/store/InfiniteIconCarousel'
 import { NewsletterSection } from '@/components/store/NewsletterSection'
 import { ReviewsSection } from '@/components/store/ReviewsSection'
 import { FreeDeliveryRibbon } from '@/components/store/FreeDeliveryRibbon'
+import { CouponMarquee } from '@/components/store/CouponMarquee'
 import { HIGH_INTENT_KEYWORDS, LOW_COMPETITION_KEYWORDS, SITE_URL, BRAND_KEYWORDS } from '@/lib/seo/keywords'
 import { faqSchema } from '@/lib/seo/schema'
 
@@ -254,6 +255,9 @@ export default async function HomePage() {
 
         {/* Hero section */}
         <HeroCarousel slides={allSlides} />
+
+        {/* Active coupon codes — thin scrolling banner (renders nothing if none) */}
+        <CouponMarquee />
 
         {/* Shop by Category — dynamic, driven by the admin `categories` table */}
         <CategoryStrip categories={categoryList} />

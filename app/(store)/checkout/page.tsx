@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Loader2, ShieldCheck, Truck, MapPin, Plus, ArrowRight, Check, CreditCard, Wallet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { isOdishaPincode, isEmail, realEmail } from '@/lib/validators'
+import { CouponInput, type AppliedCoupon } from '@/components/checkout/CouponInput'
 
 type Address = {
     id: string
@@ -80,6 +81,8 @@ function CheckoutInner() {
     const [placing, setPlacing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [userEmail, setUserEmail] = useState<string>('')
+    const [userId, setUserId] = useState<string>('')
+    const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null)
     const [isMobile, setIsMobile] = useState(false)
 
     useEffect(() => {
@@ -100,6 +103,7 @@ function CheckoutInner() {
                     router.push(`/auth?next=${encodeURIComponent(next)}`)
                     return
                 }
+                setUserId(user.id)
                 // Pre-fill only a REAL email — phone-OTP signups carry a synthetic
                 // "<phone>@reveil.internal" placeholder that must never be shown
                 // or used as a contact address.
@@ -168,7 +172,10 @@ function CheckoutInner() {
         : subtotal >= FREE_THRESHOLD
             ? 0
             : paymentMethod === 'cod' ? SHIPPING_FEE_COD : SHIPPING_FEE_PREPAID
-    const total = subtotal + shipping
+    // Coupon discount is computed on the subtotal and clamped so the total never
+    // goes below the shipping fee. The server re-validates this authoritatively.
+    const couponDiscount = Math.min(appliedCoupon?.discount || 0, subtotal)
+    const total = Math.max(subtotal - couponDiscount + shipping, 0)
     const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || null
 
     // The checkout URL (incl. buy-now params) we send to the address book so it
@@ -202,6 +209,7 @@ function CheckoutInner() {
                 },
                 payment_method: 'cod',
                 buy_now: isBuyNow,
+                coupon_code: appliedCoupon?.code || null,
             }),
         })
         const data = await res.json()
@@ -243,6 +251,7 @@ function CheckoutInner() {
                 address_id: selectedAddress.id,
                 email: userEmail.trim(),
                 buy_now: isBuyNow ? { product_id: buyNowProductId, quantity: buyNowQty } : undefined,
+                coupon_code: appliedCoupon?.code || null,
             }),
         })
         const createData = await createRes.json()
@@ -518,13 +527,24 @@ function CheckoutInner() {
                                 ))}
                             </div>
 
-                            <div style={{ height: '1px', background: 'rgba(0,0,0,0.08)', margin: '8px 0 24px' }} />
+                            <div style={{ height: '1px', background: 'rgba(0,0,0,0.08)', margin: '8px 0 20px' }} />
+
+                            {/* Coupon code */}
+                            <CouponInput orderAmount={subtotal} userId={userId || undefined} onApplied={setAppliedCoupon} />
+
+                            <div style={{ height: '1px', background: 'rgba(0,0,0,0.08)', margin: '20px 0' }} />
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                                     <span style={{ color: 'rgba(0,0,0,0.5)' }}>Subtotal</span>
                                     <span>₹{subtotal.toLocaleString()}</span>
                                 </div>
+                                {appliedCoupon && couponDiscount > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#16a34a' }}>
+                                        <span>Coupon ({appliedCoupon.code})</span>
+                                        <span>−₹{couponDiscount.toLocaleString()}</span>
+                                    </div>
+                                )}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                                     <span style={{ color: 'rgba(0,0,0,0.5)' }}>
                                         Shipping

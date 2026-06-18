@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { notifyGoogleOfChange } from '@/lib/utils/indexing'
+import { upsertMerchantProduct } from '@/lib/google-sync'
 import { SITE_URL } from '@/lib/seo/keywords'
 
 // Service role client — bypasses RLS for public catalogue reads
@@ -124,12 +125,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // 7. Notify Google Indexing API
+    // 7. Notify Google Indexing API + push to Merchant Center (both best-effort)
     try {
         await notifyGoogleOfChange(`${SITE_URL}/products/${data.slug}`);
     } catch (err) {
         console.error('Failed to notify Google Indexing API:', err);
     }
+    upsertMerchantProduct(data).catch((err) =>
+        console.error('Failed to sync product to Merchant Center:', err)
+    );
 
     return NextResponse.json(data, { status: 201 })
 }

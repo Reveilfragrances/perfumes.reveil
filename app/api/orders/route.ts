@@ -4,7 +4,8 @@ import { requireUser } from '@/lib/auth/require'
 import { isUuid, clampInt, isEmail } from '@/lib/validators'
 import { rateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit'
 import { computeShipping } from '@/lib/razorpay'
-import { triggerOrderReceivedEmail } from '@/lib/utils/email'
+import { triggerOrderReceivedEmail, triggerAdminOrderNotification } from '@/lib/utils/email'
+import { validateAndComputeCoupon, incrementCouponUsage } from '@/lib/coupons'
 import { NextResponse } from 'next/server'
 
 const COD_MAX_TOTAL_INR = 5000
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { items, shipping_address, payment_method = 'cod', buy_now = false, email } = body || {}
+    const { items, shipping_address, payment_method = 'cod', buy_now = false, email, coupon_code } = body || {}
 
     if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
         return NextResponse.json({ error: 'items array is required' }, { status: 400 })
@@ -154,7 +155,23 @@ export async function POST(request: Request) {
     // endpoint), so hardcode 'cod' here — Reveil's policy: ₹80 shipping when
     // subtotal < ₹250, free above.
     const shippingFee = computeShipping(subtotal, 'cod', applyFee)
-    const total = subtotal + shippingFee
+
+    // Coupon — re-validated server-side (never trust a client-sent discount).
+    let couponId: string | null = null
+    let couponCode: string | null = null
+    let couponDiscount = 0
+    if (coupon_code) {
+        const couponResult = await validateAndComputeCoupon({ code: coupon_code, subtotal, userId: user.id })
+        if (couponResult.ok) {
+            couponId = couponResult.couponId
+            couponCode = couponResult.code
+            couponDiscount = couponResult.discount
+        }
+        // Invalid coupon → silently ignore and charge full price; the UI already
+        // validated it, so this only fires on a stale/expired code at submit time.
+    }
+
+    const total = Math.max(subtotal - couponDiscount + shippingFee, 0)
 
     if (total > COD_MAX_TOTAL_INR) {
         return NextResponse.json(
@@ -240,6 +257,20 @@ export async function POST(request: Request) {
             .eq('id', orderId as string)
     }
 
+    // Persist coupon info on the order + bump usage. Best-effort: wrapped so a
+    // missing coupon column (pre-migration) never fails an otherwise-valid order.
+    if (couponId && couponDiscount > 0) {
+        const { error: couponSaveError } = await admin
+            .from('orders')
+            .update({ coupon_id: couponId, coupon_code: couponCode, coupon_discount: couponDiscount })
+            .eq('id', orderId as string)
+        if (couponSaveError) {
+            console.error('[orders] Failed to persist coupon (non-fatal):', couponSaveError.message)
+        } else {
+            await incrementCouponUsage(couponId)
+        }
+    }
+
     if (!buy_now) {
         await supabase.from('cart_items').delete().eq('user_id', user.id)
     }
@@ -263,6 +294,10 @@ export async function POST(request: Request) {
     // under review" email so the customer knows it landed.
     triggerOrderReceivedEmail(orderId as string).catch((err) => {
         console.error('[orders] Order received email failed (non-fatal):', err?.message)
+    })
+    // Notify the store owner so they can review/process the new order.
+    triggerAdminOrderNotification(orderId as string).catch((err) => {
+        console.error('[orders] Admin order notification failed (non-fatal):', err?.message)
     })
 
     return NextResponse.json(fullOrder, { status: 201 })

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import OrderStatusBadge from '@/components/admin/OrderStatusBadge'
 import CancelOrderButton from '@/components/admin/CancelOrderButton'
 import ConfirmOrderButton from '@/components/admin/ConfirmOrderButton'
+import ShippingActionPanel from '@/components/admin/ShippingActionPanel'
 import { getDisplayStatus } from '@/lib/utils/order-status'
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,19 +14,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     // Fetch single order with detailed breakdown and profiles
     const { data: order, error } = await supabase
         .from('orders')
+        // Select all order columns with `*` so newly-added shipping columns
+        // (shipping_provider, shipping_status, …) are picked up when present
+        // but the query still works before the migration has been run.
         .select(`
-            id,
-            total,
-            shipping_cost,
-            cod_charge,
-            status,
-            payment_method,
-            payment_status,
-            payment_id,
-            shipping_address,
-            shiprocket_order_id,
-            awb_code,
-            created_at,
+            *,
             profiles (
                 full_name,
                 first_name,
@@ -210,6 +203,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                             )}
                         </div>
                     </div>
+
+                    <ShippingActionPanel order={order as any} />
                 </div>
             </div>
         </div>

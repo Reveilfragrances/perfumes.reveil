@@ -152,13 +152,16 @@ export default async function ProductExperiencePage({ params }: Props) {
 
     // 3. Build rich Product + BreadcrumbList JSON-LD
     const productUrl = `${SITE_URL}/products/${product.slug}`
+    // Google Merchant/Search Console rejects sku values over 50 chars and warns
+    // past 40 — slugs derived from long product names can exceed that, so cap it.
+    const productSku = String(product.slug || product.id).substring(0, 40)
     const productSchema = {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
         description: product.description,
         image: product.images,
-        sku: product.slug,
+        sku: productSku,
         mpn: product.id,
         category: product.category,
         brand: {
@@ -187,6 +190,7 @@ export default async function ProductExperiencePage({ params }: Props) {
                 merchantReturnDays: 7,
                 returnMethod: 'https://schema.org/ReturnByMail',
                 returnFees: 'https://schema.org/FreeReturn',
+                refundType: 'https://schema.org/FullRefund',
             },
             shippingDetails: {
                 '@type': 'OfferShippingDetails',

@@ -28,8 +28,8 @@ export const LEGAL_NAME = 'Trimurty Enterprises'
 //   • JSON-LD Organization.sameAs (knowledge panel association)
 // Update here and both surfaces follow.
 export const SOCIAL_LINKS = {
-  instagram: 'https://www.instagram.com/trimurty_enterprises',
-  facebook: 'https://www.facebook.com/TrimurtyEnterprises',
+  instagram: 'https://www.instagram.com/reveilfragrance/',
+  facebook: 'https://www.facebook.com/reveilfragrances',
 } as const
 
 // ── HIGH-INTENT COMMERCIAL KEYWORDS ─────────────────────────────────────────
