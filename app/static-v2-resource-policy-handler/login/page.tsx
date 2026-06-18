@@ -29,7 +29,12 @@ export default function AdminLogin() {
         setError('')
 
         const supabase = createClient()
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        // Trim email + password so a stray space/newline from pasting doesn't
+        // cause a false "Invalid login credentials". Email is also lowercased.
+        const { error } = await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password: password.trim(),
+        })
 
         if (error) {
             setError(error.message)
