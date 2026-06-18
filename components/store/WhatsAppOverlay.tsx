@@ -4,7 +4,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 
 export function WhatsAppOverlay() {
-    const whatsappLink = "https://wa.me/917008879914"
+    const whatsappLink = "https://wa.me/917873789595"
 
     return (
         <>

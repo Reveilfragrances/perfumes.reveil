@@ -149,7 +149,7 @@ export default function ContactPage() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1px solid rgba(212,175,55,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37' }}>
                   <Phone size={12} />
                 </div>
-                <span style={{ fontSize: '12px', letterSpacing: '0.1em', color: '#ffffff' }}>+91 7873789595</span>
+                <span style={{ fontSize: '12px', letterSpacing: '0.1em', color: '#ffffff' }}>+91 78737 89595</span>
               </div>
             </div>
           </motion.div>
