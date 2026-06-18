@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sanitizeAwb, verifyIcarryWebhook } from '@/lib/shipping/webhook-guard'
+import { extractAwb, extractReason, verifyIcarryWebhook } from '@/lib/shipping/webhook-guard'
 
 // iCarry NDR (non-delivery report) webhook — flags the order for admin review.
 export async function POST(req: Request) {
@@ -15,10 +15,10 @@ export async function POST(req: Request) {
     }
 
     // AWB is interpolated into a PostgREST filter — sanitize to prevent injection.
-    const awb = sanitizeAwb(body?.awb)
+    const awb = extractAwb(body)
     if (!awb) return new Response('Missing or invalid awb', { status: 400 })
 
-    const reason = String(body?.reason || 'Delivery attempted, not delivered').slice(0, 300)
+    const reason = extractReason(body)
 
     const supabase = createAdminClient()
     await supabase

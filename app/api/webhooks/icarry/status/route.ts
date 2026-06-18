@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sanitizeAwb, verifyIcarryWebhook } from '@/lib/shipping/webhook-guard'
+import { extractAwb, extractStatus, verifyIcarryWebhook } from '@/lib/shipping/webhook-guard'
 
 // iCarry status update webhook — updates shipping_status by AWB.
 export async function POST(req: Request) {
@@ -15,10 +15,10 @@ export async function POST(req: Request) {
     }
 
     // AWB is interpolated into a PostgREST filter — sanitize to prevent injection.
-    const awb = sanitizeAwb(body?.awb)
+    const awb = extractAwb(body)
     if (!awb) return new Response('Missing or invalid awb', { status: 400 })
 
-    const status = String(body?.status || 'unknown').toLowerCase().slice(0, 40)
+    const status = extractStatus(body)
 
     const supabase = createAdminClient()
     await supabase

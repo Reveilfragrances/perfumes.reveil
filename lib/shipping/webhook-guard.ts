@@ -13,10 +13,29 @@
  */
 
 export function sanitizeAwb(raw: unknown): string | null {
-    if (typeof raw !== 'string') return null
-    const trimmed = raw.trim()
+    if (typeof raw !== 'string' && typeof raw !== 'number') return null
+    const trimmed = String(raw).trim()
     if (!trimmed || trimmed.length > 64) return null
     return /^[A-Za-z0-9_-]+$/.test(trimmed) ? trimmed : null
+}
+
+// iCarry's exact webhook payload field names aren't published, so accept the
+// common variants for each value. Returns the first present, sanitized AWB.
+export function extractAwb(body: any): string | null {
+    const candidate =
+        body?.awb ?? body?.awb_number ?? body?.awb_no ?? body?.tracking_number ??
+        body?.tracking_no ?? body?.waybill ?? body?.waybill_no
+    return sanitizeAwb(candidate)
+}
+
+export function extractStatus(body: any): string {
+    const s = body?.status ?? body?.current_status ?? body?.shipment_status ?? body?.status_name ?? 'unknown'
+    return String(s).toLowerCase().slice(0, 40)
+}
+
+export function extractReason(body: any): string {
+    const r = body?.reason ?? body?.ndr_reason ?? body?.remark ?? body?.remarks ?? body?.message ?? 'Delivery attempted, not delivered'
+    return String(r).slice(0, 300)
 }
 
 export function verifyIcarryWebhook(req: Request): boolean {
