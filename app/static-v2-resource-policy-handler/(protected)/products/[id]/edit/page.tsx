@@ -5,6 +5,7 @@ import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Trash2, Image as ImageIcon, Sparkles, Upload, X } from 'lucide-react'
 import Link from 'next/link'
+import { checkForFlaggedContent, FLAGGED_WORD_REPLACEMENTS } from '@/lib/content-check'
 
 type Params = Promise<{ id: string }>
 
@@ -200,6 +201,35 @@ export default function EditProductPage(props: { params: Params }) {
                 ...(product.technical_specs || {}),
                 sizes,
             },
+            // Google Merchant Center fields
+            unit: (formData.get('unit') as string) || 'ml',
+            unit_pricing_base_measure: formData.get('unit_pricing_base_measure')
+                ? parseFloat(formData.get('unit_pricing_base_measure') as string)
+                : null,
+            shipping_weight: formData.get('shipping_weight')
+                ? parseFloat(formData.get('shipping_weight') as string)
+                : null,
+        }
+
+        // Flagged content check — warn admin but never block save
+        const flagged = checkForFlaggedContent(
+            `${name} ${body.description || ''} ${metaDescriptionRaw}`
+        )
+        if (flagged.length > 0) {
+            const replacements = flagged
+                .map((w) => `"${w}" → use ${FLAGGED_WORD_REPLACEMENTS[w] || 'a different word'}`)
+                .join('\n')
+            const proceed = window.confirm(
+                `⚠️ Google Merchant Center Warning\n\n` +
+                `The following words may cause Google to flag this product as "Restricted adult content":\n` +
+                `${replacements}\n\n` +
+                `Consider replacing them before saving.\n\n` +
+                `Click OK to save anyway, or Cancel to go back and edit.`
+            )
+            if (!proceed) {
+                setSaving(false)
+                return
+            }
         }
 
         try {
@@ -645,6 +675,50 @@ export default function EditProductPage(props: { params: Params }) {
                                 placeholder="midnight oud, oud perfume india, long lasting oud"
                             />
                             <p className="text-[10px] text-gray-400">Merged with auto-generated keywords on the product page.</p>
+                        </div>
+
+                        {/* Google Merchant Center fields */}
+                        <div className="rounded-xl bg-amber-50/60 border border-amber-100 p-4 space-y-3">
+                            <p className="text-[9px] font-bold tracking-widest uppercase text-amber-700">
+                                🛒 Google Merchant Center
+                            </p>
+                            <div className="grid grid-cols-1 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Unit</label>
+                                    <select
+                                        name="unit"
+                                        defaultValue={product.unit || 'ml'}
+                                        className="w-full bg-white border border-amber-100 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-accent transition-all"
+                                    >
+                                        <option value="ml">ml (millilitres)</option>
+                                        <option value="g">g (grams)</option>
+                                        <option value="fl oz">fl oz</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Volume / Weight (e.g. 50)</label>
+                                    <input
+                                        type="number"
+                                        name="unit_pricing_base_measure"
+                                        defaultValue={product.unit_pricing_base_measure || ''}
+                                        min="0" step="0.1"
+                                        className="w-full bg-white border border-amber-100 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-accent transition-all"
+                                        placeholder="50"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Shipping weight (kg)</label>
+                                    <input
+                                        type="number"
+                                        name="shipping_weight"
+                                        defaultValue={product.shipping_weight || ''}
+                                        min="0.01" step="0.01"
+                                        className="w-full bg-white border border-amber-100 rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-accent transition-all"
+                                        placeholder="0.2"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[9px] text-amber-600">Fixes "Missing unit pricing measure" &amp; "Missing shipping costs" in Merchant Center. Example: 50ml bottle → Unit=ml, Volume=50, Weight=0.2.</p>
                         </div>
                     </section>
 

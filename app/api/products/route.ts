@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, price, mrp, description, images, category, stock, is_featured,
         meta_title, meta_description, meta_keywords, scent_profile, technical_specs,
-        apply_delivery_fee } = body
+        apply_delivery_fee, unit, unit_pricing_base_measure, shipping_weight } = body
 
     if (!name || !price) {
         return NextResponse.json({ error: 'name and price are required' }, { status: 400 })
@@ -117,6 +117,10 @@ export async function POST(request: Request) {
             scent_profile: scent_profile ?? null,
             technical_specs: technical_specs ?? null,
             apply_delivery_fee: apply_delivery_fee ?? true,
+            // Google Merchant Center fields
+            unit: unit ?? 'ml',
+            unit_pricing_base_measure: unit_pricing_base_measure ?? null,
+            shipping_weight: shipping_weight ?? null,
         })
         .select()
         .single()

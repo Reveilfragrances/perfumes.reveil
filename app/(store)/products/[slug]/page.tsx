@@ -192,6 +192,23 @@ export default async function ProductExperiencePage({ params }: Props) {
                 returnFees: 'https://schema.org/FreeReturn',
                 refundType: 'https://schema.org/FullRefund',
             },
+            // unit_pricing_measure — fixes "Missing unit pricing measure" error in Merchant Center
+            // Required for liquid/weighted products (fragrances, attars) in India
+            ...(product.unit
+                ? {
+                      unitPricingMeasure: {
+                          '@type': 'QuantitativeValue',
+                          value: parseFloat(product.unit_pricing_base_measure || '') || 100,
+                          unitCode: product.unit === 'ml' ? 'MLT' : product.unit === 'g' ? 'GRM' : 'MLT',
+                      },
+                      unitPricingBaseMeasure: {
+                          '@type': 'QuantitativeValue',
+                          value: 100,
+                          unitCode: product.unit === 'ml' ? 'MLT' : product.unit === 'g' ? 'GRM' : 'MLT',
+                      },
+                  }
+                : {}),
+
             shippingDetails: {
                 '@type': 'OfferShippingDetails',
                 shippingRate: {

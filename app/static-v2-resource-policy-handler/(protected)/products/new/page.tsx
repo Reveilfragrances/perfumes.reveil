@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { SITE_URL } from '@/lib/seo/keywords'
+import { checkForFlaggedContent, FLAGGED_WORD_REPLACEMENTS } from '@/lib/content-check'
 
 export default function NewProductPage() {
     const router = useRouter()
@@ -29,6 +30,10 @@ export default function NewProductPage() {
         heart_notes: '',
         base_notes: '',
         sizes: '',
+        // Google Merchant Center fields
+        unit: 'ml',
+        unit_pricing_base_measure: '',
+        shipping_weight: '',
     })
 
     // Discount % derived from MRP + discounted price. Null when the inputs
@@ -153,6 +158,27 @@ export default function NewProductPage() {
 
         setLoading(true)
 
+        // Flagged content check — warn admin but never block save
+        const flagged = checkForFlaggedContent(
+            `${form.name} ${form.description} ${form.meta_description}`
+        )
+        if (flagged.length > 0) {
+            const replacements = flagged
+                .map((w) => `"${w}" → use ${FLAGGED_WORD_REPLACEMENTS[w] || 'a different word'}`)
+                .join('\n')
+            const proceed = window.confirm(
+                `⚠️ Google Merchant Center Warning\n\n` +
+                `The following words may cause Google to flag this product as "Restricted adult content":\n` +
+                `${replacements}\n\n` +
+                `Consider replacing them before saving.\n\n` +
+                `Click OK to save anyway, or Cancel to go back and edit.`
+            )
+            if (!proceed) {
+                setLoading(false)
+                return
+            }
+        }
+
         const sizesArr = form.sizes
             .split(',')
             .map(s => s.trim().toUpperCase().replace(/\s+/g, ''))
@@ -175,6 +201,14 @@ export default function NewProductPage() {
                     base: form.base_notes.trim() || null,
                 },
                 technical_specs: sizesArr.length > 0 ? { sizes: sizesArr } : null,
+                // Google Merchant Center fields
+                unit: form.unit || 'ml',
+                unit_pricing_base_measure: form.unit_pricing_base_measure
+                    ? parseFloat(form.unit_pricing_base_measure)
+                    : null,
+                shipping_weight: form.shipping_weight
+                    ? parseFloat(form.shipping_weight)
+                    : null,
             }),
         })
 
@@ -550,7 +584,7 @@ export default function NewProductPage() {
                         />
                     </div>
 
-                    <div>
+                    <div style={{ marginBottom: '16px' }}>
                         <label style={label}>Meta keywords</label>
                         <input
                             style={input}
@@ -560,6 +594,53 @@ export default function NewProductPage() {
                         />
                         <p style={{ fontSize: '12px', color: '#888', marginTop: '6px', marginBottom: 0 }}>
                             Comma-separated. Merged with auto-generated keywords on the product page.
+                        </p>
+                    </div>
+
+                    {/* ── Google Merchant Center fields ── */}
+                    <div style={{
+                        background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px',
+                        padding: '16px', marginBottom: '16px',
+                    }}>
+                        <p style={{ fontSize: '12px', fontWeight: 700, color: '#92400e', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            🛒 Google Merchant Center
+                        </p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                            <div>
+                                <label style={label}>Unit (ml / g / fl oz)</label>
+                                <select
+                                    style={input} name="unit"
+                                    value={form.unit} onChange={handleChange}
+                                >
+                                    <option value="ml">ml (millilitres)</option>
+                                    <option value="g">g (grams)</option>
+                                    <option value="fl oz">fl oz</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={label}>Volume/Weight (e.g. 50, 6, 100)</label>
+                                <input
+                                    style={input} name="unit_pricing_base_measure"
+                                    type="number" min="0" step="0.1"
+                                    value={form.unit_pricing_base_measure}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 50"
+                                />
+                            </div>
+                            <div>
+                                <label style={label}>Shipping weight (kg)</label>
+                                <input
+                                    style={input} name="shipping_weight"
+                                    type="number" min="0.01" step="0.01"
+                                    value={form.shipping_weight}
+                                    onChange={handleChange}
+                                    placeholder="0.2"
+                                />
+                            </div>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#92400e', marginTop: '10px', marginBottom: 0 }}>
+                            These fields fix the "Missing unit pricing measure" and "Missing shipping costs" errors in Google Merchant Center.
+                            For a 50ml perfume bottle, enter Unit = ml, Volume = 50, Shipping weight = 0.2.
                         </p>
                     </div>
 

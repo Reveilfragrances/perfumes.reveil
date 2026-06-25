@@ -11,6 +11,8 @@ const ALLOWED_FIELDS = [
     'name', 'slug', 'price', 'mrp', 'description', 'images', 'category',
     'stock', 'is_featured', 'meta_title', 'meta_description', 'meta_keywords',
     'scent_profile', 'rating', 'technical_specs', 'apply_delivery_fee',
+    // Google Merchant Center fields
+    'unit', 'unit_pricing_base_measure', 'shipping_weight',
 ] as const
 
 function pickAllowedFields(body: Record<string, unknown>) {
