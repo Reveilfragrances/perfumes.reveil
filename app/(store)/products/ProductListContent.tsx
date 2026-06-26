@@ -13,13 +13,15 @@ import { createClient } from '@/lib/supabase/client'
 // the URL ?category=slug against a product's stored category name.
 const toSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
-export function ProductListContent() {
+export function ProductListContent({ initialProducts = [] }: { initialProducts?: Product[] }) {
     const searchParams = useSearchParams()
     const initialSearch = searchParams.get('search') || ""
     const initialCategory = searchParams.get('category') || "ALL"
 
-    const [products, setProducts] = useState<Product[]>([])
-    const [loading, setLoading] = useState(true)
+    // Seed from the server-fetched catalogue so the grid is in the SSR HTML
+    // (crawlable). Only fall back to a client fetch if the server passed nothing.
+    const [products, setProducts] = useState<Product[]>(initialProducts)
+    const [loading, setLoading] = useState(initialProducts.length === 0)
     const [isMobile, setIsMobile] = useState(false)
     const [selectedCategory, setSelectedCategory] = useState(initialCategory)
     const [searchQuery, setSearchQuery] = useState(initialSearch)
@@ -81,7 +83,9 @@ export function ProductListContent() {
                 console.error('Error fetching wishlist:', err)
             }
         }
-        fetchProducts()
+        // Server already seeded the catalogue — only fetch client-side as a
+        // fallback when it didn't (e.g. the server prefetch failed).
+        if (initialProducts.length === 0) fetchProducts()
         fetchWishlist()
 
         const checkMobile = () => setIsMobile(window.innerWidth < 1024)

@@ -4,7 +4,9 @@
       "Bash(mkdir -p lib/seo 2>/dev/null; ls lib/seo 2>/dev/null)",
       "Bash(npx tsc *)",
       "Bash(fd -t f route.ts app/api/reviews)",
-      "Bash(find app/api/reviews -name \"*.ts\")"
+      "Bash(find app/api/reviews -name \"*.ts\")",
+      "Bash(npx eslint *)",
+      "Bash(npx next *)"
     ],
     "additionalDirectories": [
       "N:\\REVEIL-PERFUMES\\reveil\\perfumes.reveil\\lib"

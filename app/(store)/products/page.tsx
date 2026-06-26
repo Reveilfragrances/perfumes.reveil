@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { ProductListContent } from './ProductListContent'
 import { Suspense } from 'react'
+import { createClient } from '@/lib/supabase/server'
+import type { Product } from '@/types/store'
 import { PremiumLoader } from '@/components/store/PremiumLoader'
 import {
   SITE_URL,
@@ -126,6 +128,23 @@ export default async function ShopPage({
   const meta = (catKey && CATEGORY_META[catKey]) ? CATEGORY_META[catKey] : DEFAULT_META
   const url = category ? `${SITE_URL}/products?category=${category}` : `${SITE_URL}/products`
 
+  // Server-fetch the full catalogue so the product grid is present in the
+  // initial HTML (crawlable by Google). The client component still does all
+  // filtering/sorting/search on top of this seeded list. Mirrors the previous
+  // client query (all products, newest first, capped) so behaviour is identical.
+  let initialProducts: Product[] = []
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500)
+    initialProducts = (data as Product[]) || []
+  } catch (err) {
+    console.error('[ShopPage] product prefetch failed (non-fatal):', err)
+  }
+
   // Build CollectionPage + BreadcrumbList JSON-LD for category landings.
   const schemas = [
     collectionPageSchema({
@@ -183,7 +202,7 @@ export default async function ShopPage({
         </ul>
       </div>
 
-      <ProductListContent />
+      <ProductListContent initialProducts={initialProducts} />
     </Suspense>
   )
 }
