@@ -89,8 +89,16 @@ export async function POST(request: Request) {
         .single()
     const isAdmin = profile?.role === 'admin'
 
+    // All review reads/writes below go through the service-role client. The
+    // user is already authenticated (requireUser) and user_id is set from the
+    // verified session — never from client input — so this is safe. It also
+    // makes the flow independent of the reviews table's RLS policies, which in
+    // production were blocking customer inserts (the row silently never landed,
+    // so the review appeared nowhere — site or admin panel).
+    const adminDb = createAdminClient()
+
     if (!isAdmin && productId) {
-        const { data: existing } = await supabase
+        const { data: existing } = await adminDb
             .from('reviews')
             .select('id')
             .eq('user_id', user.id)
@@ -132,27 +140,39 @@ export async function POST(request: Request) {
         }
     }
 
-    const activeClient = isAdmin ? createAdminClient() : supabase
-    const { data: review, error: reviewError } = await activeClient
+    const { data: review, error: reviewError } = await adminDb
         .from('reviews')
         .insert(insertData)
         .select()
         .single()
 
     if (reviewError) {
-        console.error('Supabase review insert error')
-        return NextResponse.json({ error: 'Could not submit review' }, { status: 500 })
+        // Log the full Postgres error context so a schema/constraint problem is
+        // diagnosable from the server logs, and return the reason so the client
+        // (customer modal / admin form) can show something actionable instead of
+        // a silent failure. 42703 = undefined_column, 23502 = not_null_violation,
+        // 23503 = foreign_key_violation, 23505 = unique_violation.
+        console.error('[reviews] insert failed', {
+            code: reviewError.code,
+            message: reviewError.message,
+            details: reviewError.details,
+            hint: reviewError.hint,
+        })
+        return NextResponse.json(
+            { error: 'Could not submit review', reason: reviewError.message, code: reviewError.code },
+            { status: 500 },
+        )
     }
 
     if (productId) {
         try {
-            const { data: allRatings } = await supabase
+            const { data: allRatings } = await adminDb
                 .from('reviews')
                 .select('rating')
                 .eq('product_id', productId)
             if (allRatings && allRatings.length > 0) {
                 const avg = allRatings.reduce((s: number, r: any) => s + r.rating, 0) / allRatings.length
-                await createAdminClient()
+                await adminDb
                     .from('products')
                     .update({ rating: parseFloat(avg.toFixed(1)) })
                     .eq('id', productId)

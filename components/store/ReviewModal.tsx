@@ -101,6 +101,9 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
                     try {
                         const data = await res.json()
                         if (data?.error) message = data.error
+                        // Surface the DB reason when present so a schema/policy
+                        // problem is visible rather than a generic failure.
+                        if (data?.reason && data.reason !== data.error) message += ` (${data.reason})`
                     } catch {
                         // keep the default message
                     }
