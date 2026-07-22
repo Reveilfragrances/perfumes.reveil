@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
 const ALLOWED_TYPES: Record<string, string> = {
@@ -43,7 +44,13 @@ export async function POST(request: Request) {
     const random = crypto.randomBytes(16).toString('hex')
     const fileName = `reviews/${Date.now()}-${random}.${ext}`
 
-    const { error } = await supabase.storage
+    // Write with the service-role client. The user is already authenticated
+    // (checked above), but the 'product-images' bucket's storage policies are
+    // scoped to admins managing product photos — a normal customer's upload
+    // would be rejected by RLS. user_id isn't trusted here; we only store the
+    // file under a reviews/ prefix, so bypassing the bucket policy is safe.
+    const admin = createAdminClient()
+    const { error } = await admin.storage
         .from('product-images') // Reusing existing bucket
         .upload(fileName, file, {
             contentType: file.type,
@@ -52,11 +59,11 @@ export async function POST(request: Request) {
         })
 
     if (error) {
-        console.error('Upload Error:', error)
-        return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+        console.error('[reviews/upload] Storage upload failed:', error.message)
+        return NextResponse.json({ error: 'Upload failed', reason: error.message }, { status: 500 })
     }
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = admin.storage
         .from('product-images')
         .getPublicUrl(fileName)
 

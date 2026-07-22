@@ -35,9 +35,11 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
     const [error, setError] = useState('')
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
+        const input = e.target
+        const file = input.files?.[0]
         if (!file) return
         setUploading(true)
+        setError('')
         const formData = new FormData()
         formData.append('file', file)
         try {
@@ -45,14 +47,30 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
                 method: 'POST',
                 body: formData
             })
-            const data = await res.json()
-            if (data.url) {
+            const data = await res.json().catch(() => ({}))
+            if (res.ok && data?.url) {
                 setMediaUrls(prev => [...prev, data.url])
+            } else {
+                // Surface the failure instead of silently doing nothing.
+                let message = 'Image upload failed. Please try again.'
+                if (res.status === 401) {
+                    message = 'Please sign in to add photos to your review.'
+                } else if (res.status === 413) {
+                    message = 'That file is too large (max 5 MB).'
+                } else if (res.status === 415) {
+                    message = 'Unsupported file type. Use JPG, PNG, WebP, or MP4.'
+                } else if (data?.error) {
+                    message = data.reason ? `${data.error} (${data.reason})` : data.error
+                }
+                setError(message)
             }
-        } catch (error) {
-            console.error('Upload failed:', error)
+        } catch (err) {
+            console.error('Upload failed:', err)
+            setError('Image upload failed. Please check your connection and try again.')
         } finally {
             setUploading(false)
+            // Reset so selecting the same file again re-triggers the change event.
+            input.value = ''
         }
     }
 
