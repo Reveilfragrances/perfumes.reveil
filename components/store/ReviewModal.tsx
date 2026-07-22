@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, X, Loader2, CheckCircle, Image as ImageIcon, Video, Trash2 } from 'lucide-react'
 
@@ -15,6 +16,7 @@ interface ReviewModalProps {
 }
 
 export function ReviewModal({ isOpen, onClose, product, orderId, initialRating = 0 }: ReviewModalProps) {
+    const router = useRouter()
     const [rating, setRating] = useState(initialRating)
     const [hoveredRating, setHoveredRating] = useState(0)
 
@@ -30,6 +32,7 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
     const [uploading, setUploading] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [submitted, setSubmitted] = useState(false)
+    const [error, setError] = useState('')
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -60,6 +63,7 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
     const handleSubmit = async () => {
         if (rating === 0) return
         setSubmitting(true)
+        setError('')
         try {
             const res = await fetch('/api/reviews', {
                 method: 'POST',
@@ -76,15 +80,36 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
             })
             if (res.ok) {
                 setSubmitted(true)
+                // Re-run the server component so the new review appears in the
+                // list without a manual page reload.
+                router.refresh()
                 setTimeout(() => {
                     onClose()
                     setSubmitted(false)
                     setRating(0)
+                    setHeading('')
                     setComment('')
+                    setMediaUrls([])
+                    setError('')
                 }, 2000)
+            } else {
+                // Surface the failure instead of silently swallowing it.
+                let message = 'Could not submit your review. Please try again.'
+                if (res.status === 401) {
+                    message = 'Please sign in to write a review.'
+                } else {
+                    try {
+                        const data = await res.json()
+                        if (data?.error) message = data.error
+                    } catch {
+                        // keep the default message
+                    }
+                }
+                setError(message)
             }
-        } catch (error) {
-            console.error('Error submitting review:', error)
+        } catch (err) {
+            console.error('Error submitting review:', err)
+            setError('Network error. Please check your connection and try again.')
         } finally {
             setSubmitting(false)
         }
@@ -114,7 +139,9 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
                             position: 'relative',
                             padding: '48px',
                             borderRadius: '4px',
-                            boxShadow: '0 40px 100px rgba(0,0,0,0.8)'
+                            boxShadow: '0 40px 100px rgba(0,0,0,0.8)',
+                            maxHeight: 'calc(100dvh - 48px)',
+                            overflowY: 'auto'
                         }}
                     >
                         <button onClick={onClose} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>
@@ -236,6 +263,12 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
                                         </label>
                                     </div>
                                 </div>
+
+                                {error && (
+                                    <p style={{ color: '#e57373', fontSize: '12px', textAlign: 'center', marginBottom: '16px', letterSpacing: '0.02em' }}>
+                                        {error}
+                                    </p>
+                                )}
 
                                 <button
                                     onClick={handleSubmit}

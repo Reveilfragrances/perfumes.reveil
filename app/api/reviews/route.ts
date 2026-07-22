@@ -123,6 +123,13 @@ export async function POST(request: Request) {
         insertData.user_id = user.id
         insertData.product_id = productId
         insertData.order_id = orderId
+        // Honour the "Post review as anonymous" checkbox. Non-admins may ONLY
+        // set the reviewer name to the literal "Anonymous" — never an arbitrary
+        // name (that would allow impersonation). When not anonymous, reviewer_name
+        // stays null and the display falls back to the customer's profile name.
+        if (body?.reviewer_name === 'Anonymous') {
+            insertData.reviewer_name = 'Anonymous'
+        }
     }
 
     const activeClient = isAdmin ? createAdminClient() : supabase

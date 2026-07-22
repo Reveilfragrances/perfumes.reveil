@@ -14,9 +14,11 @@ interface Review {
     reviewer_name?: string
     reviewer_avatar?: string
     profiles: {
-        full_name: string
+        full_name?: string
+        first_name?: string
+        last_name?: string
         avatar_url?: string
-    } | { full_name: string, avatar_url?: string }[]
+    } | { full_name?: string, first_name?: string, last_name?: string, avatar_url?: string }[]
 }
 
 interface ReviewsSectionProps {
@@ -158,7 +160,8 @@ export function ReviewsSection({ reviews = [], product }: ReviewsSectionProps) {
                         ) : (
                             sortedReviews.map((review) => {
                                 const profile = Array.isArray(review.profiles) ? review.profiles[0] : review.profiles
-                                const name = review.reviewer_name || profile?.full_name || 'Anonymous'
+                                const profileName = profile?.full_name || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ')
+                                const name = review.reviewer_name || profileName || 'Anonymous'
                                 const avatar = review.reviewer_avatar || profile?.avatar_url
 
                                 return (

@@ -115,7 +115,7 @@ export default async function ProductExperiencePage({ params }: Props) {
             heading,
             media_urls,
             user_id,
-            profiles ( first_name, last_name, role )
+            profiles ( first_name, last_name, full_name, role )
         `)
         .eq('product_id', product.id)
         .order('created_at', { ascending: false })

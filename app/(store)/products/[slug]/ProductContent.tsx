@@ -74,6 +74,11 @@ export function ProductContent({ product, initialReviews, relatedProducts = [] }
     const supabase = createClient()
     const [isMobile, setIsMobile] = useState(false)
     const [reviews, setReviews] = useState(initialReviews)
+    // Keep the displayed list in sync after router.refresh() (e.g. once a new
+    // review is submitted) — otherwise the state stays frozen at its seed value.
+    useEffect(() => {
+        setReviews(initialReviews)
+    }, [initialReviews])
     // Admin-managed list of available sizes. Falls back to the legacy
      // [50ML, 100ML] when a product hasn't had sizes configured yet.
     const availableSizes: string[] = (() => {
