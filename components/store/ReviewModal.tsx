@@ -61,7 +61,11 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
     }
 
     const handleSubmit = async () => {
-        if (rating === 0) return
+        // Rating is required — tell the user instead of leaving a dead button.
+        if (rating === 0) {
+            setError('Please tap a star to rate this product before submitting.')
+            return
+        }
         setSubmitting(true)
         setError('')
         try {
@@ -275,10 +279,10 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
 
                                 <button
                                     onClick={handleSubmit}
-                                    disabled={rating === 0 || submitting}
+                                    disabled={submitting}
                                     style={{
                                         width: '100%',
-                                        background: rating === 0 ? 'rgba(255,255,255,0.05)' : '#fff',
+                                        background: '#fff',
                                         color: '#000',
                                         border: 'none',
                                         padding: '18px',
@@ -286,7 +290,8 @@ export function ReviewModal({ isOpen, onClose, product, orderId, initialRating =
                                         fontWeight: 900,
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.4em',
-                                        cursor: rating === 0 ? 'not-allowed' : 'pointer',
+                                        opacity: submitting ? 0.7 : 1,
+                                        cursor: submitting ? 'not-allowed' : 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
